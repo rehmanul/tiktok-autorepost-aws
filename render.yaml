@@ -4,7 +4,7 @@ services:
     env: node
     rootDir: .
     buildCommand: npm install && npm run build -- --filter=@autorepost/api --filter=@autorepost/worker
-    startCommand: bash scripts/start-render.sh
+    startCommand: npm run render:start
     plan: free
     envVars:
       - key: NODE_ENV

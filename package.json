@@ -14,9 +14,11 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "smoke:test": "node tests/smoke/run-smoke.js"
+    "smoke:test": "node tests/smoke/run-smoke.js",
+    "render:start": "ts-node scripts/start-render.ts"
   },
   "devDependencies": {
+    "@types/node": "^24.9.1",
     "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
