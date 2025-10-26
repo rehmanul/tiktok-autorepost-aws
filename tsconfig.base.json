@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@autorepost/domain": ["packages/domain/dist/index"],
+      "@autorepost/domain/*": ["packages/domain/dist/*"],
+      "@autorepost/integrations-tiktok": ["packages/integrations-tiktok/dist/index"],
+      "@autorepost/integrations-tiktok/*": ["packages/integrations-tiktok/dist/*"],
+      "@autorepost/common": ["packages/common/dist/index"],
+      "@autorepost/common/*": ["packages/common/dist/*"]
+    }
+  }
+}

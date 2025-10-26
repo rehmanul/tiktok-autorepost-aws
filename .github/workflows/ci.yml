@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Install & Cache
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+  lint-test:
+    name: Lint & Unit Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lint
+        run: npm run lint -- --filter=@autorepost/api,@autorepost/web,@autorepost/worker
+      - name: Type Check API
+        run: npm run build -- --filter=@autorepost/api
+      - name: Type Check Worker
+        run: npm run build -- --filter=@autorepost/worker
+
+  build:
+    name: Build Artifacts
+    needs: [setup, lint-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build packages
+        run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/api/dist/**
+            apps/worker/dist/**
+            packages/common/dist/**
+            packages/domain/dist/**
+            packages/integrations-tiktok/dist/**

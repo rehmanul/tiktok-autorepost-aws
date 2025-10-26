@@ -1,0 +1,252 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id         String          @id @default(uuid())
+  name       String
+  slug       String          @unique
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  users      User[]
+  connections Connection[]
+  rules      AutoPostRule[]
+  posts      PostLog[]
+  jobs       ProcessingJob[]
+  auditEvents AuditEvent[]
+}
+
+model User {
+  id           String          @id @default(uuid())
+  tenantId     String
+  email        String
+  passwordHash String
+  displayName  String
+  role         UserRole
+  status       AccountStatus
+  lastLoginAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  connections  Connection[]
+  rules        AutoPostRule[]
+  sessions     UserSession[]
+  posts        PostLog[]
+  jobs         ProcessingJob[]
+  auditEvents  AuditEvent[]
+
+  @@unique([tenantId, email])
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  ipAddress    String?
+  userAgent    String?
+  validUntil   DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Connection {
+  id                     String             @id @default(uuid())
+  tenantId               String
+  userId                 String
+  platform               SocialPlatform
+  accountHandle          String
+  accountDisplayName     String?
+  externalAccountId      String?
+  status                 ConnectionStatus   @default(ACTIVE)
+  accessTokenEncrypted   String
+  refreshTokenEncrypted  String?
+  scopes                 String[]
+  expiresAt              DateTime?
+  lastSyncedAt           DateTime?
+  metadata               Json?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  tenant                 Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceRules            AutoPostRule[]     @relation("RuleSourceConnection")
+  destinationRules       AutoPostDestination[]
+  sourcePosts            PostLog[]           @relation("SourceConnectionPosts")
+  sourceJobs             ProcessingJob[]    @relation("SourceConnectionJobs")
+  destinationJobs        ProcessingJob[]    @relation("DestinationConnectionJobs")
+}
+
+model AutoPostRule {
+  id                  String                @id @default(uuid())
+  tenantId            String
+  userId              String
+  sourceConnectionId  String
+  name                String?
+  isActive            Boolean               @default(true)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  tenant              Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceConnection    Connection            @relation("RuleSourceConnection", fields: [sourceConnectionId], references: [id], onDelete: Cascade)
+  destinations        AutoPostDestination[]
+  posts               PostLog[]
+  jobs                ProcessingJob[]
+}
+
+model AutoPostDestination {
+  id             String        @id @default(uuid())
+  ruleId         String
+  connectionId   String
+  createdAt      DateTime      @default(now())
+
+  rule           AutoPostRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  connection     Connection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  reposts        RepostActivity[]
+}
+
+model PostLog {
+  id                 String        @id @default(uuid())
+  tenantId           String
+  userId             String
+  ruleId             String
+  sourceConnectionId String
+  tiktokPostId       String
+  tiktokUrl          String
+  caption            String
+  mediaStorageKey    String?
+  mediaSha256        String?
+  sourceVideoUrl     String?
+  thumbnailUrl       String?
+  durationSeconds    Int?
+  metadata           Json?
+  sourcePublishedAt  DateTime
+  createdAt          DateTime      @default(now())
+
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule               AutoPostRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  sourceConnection   Connection    @relation("SourceConnectionPosts", fields: [sourceConnectionId], references: [id], onDelete: Cascade)
+  reposts            RepostActivity[]
+  jobs               ProcessingJob[]
+
+  @@unique([tenantId, ruleId, tiktokPostId])
+}
+
+model RepostActivity {
+  id                      String             @id @default(uuid())
+  postLogId               String
+  destinationId           String
+  platform                SocialPlatform
+  repostUrl               String?
+  status                  RepostStatus       @default(PENDING)
+  errorMessage            String?
+  attemptCount            Int                @default(0)
+  queuedAt                DateTime           @default(now())
+  startedAt               DateTime?
+  completedAt             DateTime?
+  metadata                Json?
+  createdAt               DateTime           @default(now())
+
+  postLog                 PostLog            @relation(fields: [postLogId], references: [id], onDelete: Cascade)
+  destination             AutoPostDestination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([postLogId, destinationId])
+}
+
+model ProcessingJob {
+  id                       String           @id @default(uuid())
+  tenantId                 String
+  userId                   String
+  ruleId                   String?
+  postLogId                String?
+  sourceConnectionId       String?
+  destinationConnectionId  String?
+  kind                     JobKind
+  status                   JobStatus        @default(PENDING)
+  payload                  Json
+  result                   Json?
+  error                    Json?
+  priority                 Int              @default(0)
+  attempts                 Int              @default(0)
+  scheduledFor             DateTime         @default(now())
+  startedAt                DateTime?
+  completedAt              DateTime?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  tenant                   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule                     AutoPostRule?    @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  postLog                  PostLog?         @relation(fields: [postLogId], references: [id], onDelete: SetNull)
+  sourceConnection         Connection?      @relation("SourceConnectionJobs", fields: [sourceConnectionId], references: [id], onDelete: SetNull)
+  destinationConnection    Connection?      @relation("DestinationConnectionJobs", fields: [destinationConnectionId], references: [id], onDelete: SetNull)
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  INVITED
+}
+
+enum SocialPlatform {
+  TIKTOK
+  INSTAGRAM
+  YOUTUBE
+  TWITTER
+}
+
+enum ConnectionStatus {
+  ACTIVE
+  EXPIRED
+  ERROR
+  REVOKED
+}
+
+enum JobKind {
+  TIKTOK_SYNC
+  REPOST_PREP
+  REPOST_PUBLISH
+  TOKEN_REFRESH
+}
+
+enum JobStatus {
+  PENDING
+  SCHEDULED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum RepostStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCEEDED
+  FAILED
+}

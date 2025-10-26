@@ -1,0 +1,30 @@
+{
+  "name": "@autorepost/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "ts-node --project tsconfig.json src/main.ts",
+    "dev": "npm run start:dev",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.626.0",
+    "@aws-sdk/s3-request-presigner": "^3.626.0",
+    "@prisma/client": "^5.17.0",
+    "@autorepost/common": "0.1.0",
+    "@autorepost/integrations-tiktok": "0.1.0",
+    "bullmq": "^5.23.0",
+    "googleapis": "^143.0.0",
+    "ioredis": "^5.4.1",
+    "pino": "^9.3.1",
+    "prom-client": "^15.0.0",
+    "twitter-api-v2": "^1.17.0",
+    "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

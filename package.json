@@ -1,0 +1,32 @@
+{
+  "name": "autorepost-dash",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.5.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:services": "turbo run dev --filter=@autorepost/api --filter=@autorepost/worker --parallel",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "smoke:test": "node tests/smoke/run-smoke.js"
+  },
+  "devDependencies": {
+    "eslint": "^9.6.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.1.1",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-popover": "^1.1.15"
+  }
+}

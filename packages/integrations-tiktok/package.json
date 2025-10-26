@@ -1,0 +1,16 @@
+{
+  "name": "@autorepost/integrations-tiktok",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "p-retry": "^6.2.0",
+    "undici": "^6.19.8"
+  }
+}
