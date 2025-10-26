@@ -15,12 +15,12 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@autorepost/domain": ["packages/domain/dist/index"],
-      "@autorepost/domain/*": ["packages/domain/dist/*"],
-      "@autorepost/integrations-tiktok": ["packages/integrations-tiktok/dist/index"],
-      "@autorepost/integrations-tiktok/*": ["packages/integrations-tiktok/dist/*"],
-      "@autorepost/common": ["packages/common/dist/index"],
-      "@autorepost/common/*": ["packages/common/dist/*"]
+      "@autorepost/domain": ["packages/domain/src/index.ts"],
+      "@autorepost/domain/*": ["packages/domain/src/*"],
+      "@autorepost/integrations-tiktok": ["packages/integrations-tiktok/src/index.ts"],
+      "@autorepost/integrations-tiktok/*": ["packages/integrations-tiktok/src/*"],
+      "@autorepost/common": ["packages/common/src/index.ts"],
+      "@autorepost/common/*": ["packages/common/src/*"]
     }
   }
 }
