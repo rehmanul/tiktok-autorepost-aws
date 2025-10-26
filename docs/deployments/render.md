@@ -4,8 +4,7 @@ This guide walks through deploying the autot repost monorepo to Render using the
 
 ## Overview
 
-- **API service** (`@autorepost/api`): Render Web Service (free plan). Exposes HTTP API and `/metrics`.
-- **Worker** (`@autorepost/worker`): Render Background Worker (free plan). Shares the same repository and build artifacts.
+- **API + Worker combo service** (`@autorepost/api` + `@autorepost/worker`): Render Web Service (free plan). Runs both processes together via `scripts/start-render.sh`.
 - **Web dashboard** (`@autorepost/web`): Render Static Site (free plan). Builds the Next.js app to static output (`apps/web/out`). If you prefer SSR or edge features, Vercel is a better fit.
 
 ## Prerequisites
@@ -22,7 +21,7 @@ This guide walks through deploying the autot repost monorepo to Render using the
    - On Render → "New +", select "Blueprint" and point to your repository. Render detects `render.yaml`.
 
 2. **Configure Secrets**
-   - For each service (API, worker, static site), Render will prompt for environment variables listed in `render.yaml`.
+   - Render will prompt for environment variables for the combined API/worker service and the static site.
    - Provide values for all `sync: false` keys (DATABASE_URL, REDIS_URL, TOKEN_ENCRYPTION_KEY, TIKTOK_COOKIE, etc.).
    - If you do not yet have S3 credentials, create an IAM access key pair with limited permissions.
 
@@ -37,7 +36,7 @@ This guide walks through deploying the autot repost monorepo to Render using the
      npm run build -- --filter=@autorepost/api --filter=@autorepost/worker
      npm run build -- --filter=@autorepost/web
      ```
-   - After the build, Render runs the `startCommand` (`node apps/api/dist/main.js`) for the API and worker.
+   - After the build, Render runs the `startCommand` (`bash scripts/start-render.sh`) which launches both API and worker.
 
 5. **Verify**
    - Visit the API service URL `/health` and `/metrics`.
@@ -48,7 +47,7 @@ This guide walks through deploying the autot repost monorepo to Render using the
 ## Limitations & Notes
 
 - Render free tier sleeps web services after inactivity; expect cold starts.
-- Background worker on free tier may be paused when not running (needs manual start). For sustained background processing consider paid plan.
+- The combined service shares CPU/RAM; for sustained background throughput consider upgrading to a paid plan or moving the worker to a dedicated service.
 - Render static sites serve pre-generated HTML. If you require Next.js API routes or SSR, deploy web app to Vercel instead.
 - Object storage must be external (S3). Update `S3_ENDPOINT` and `S3_BUCKET` accordingly.
 - Prometheus metrics and open telemetry won’t be scraped automatically on Render’s free tier. Use a third-party monitor or disable metrics if not needed (`PROMETHEUS_ENABLED=false`).
