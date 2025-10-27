@@ -29,15 +29,27 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { TikTokHttpClient } from '@autorepost/integrations-tiktok';
 import { QUEUES, createTokenCipher } from '@autorepost/common';
 
+const shouldUsePrettyLogs = (() => {
+  const nodeEnv = (process.env.NODE_ENV ?? '').toLowerCase();
+  if (nodeEnv !== 'development') {
+    return false;
+  }
+  try {
+    require.resolve('pino-pretty');
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 const logger = pino({
   level: process.env.LOG_LEVEL ?? 'info',
-  transport:
-    process.env.NODE_ENV === 'development'
-      ? {
-          target: 'pino-pretty',
-          options: { colorize: true }
-        }
-      : undefined
+  transport: shouldUsePrettyLogs
+    ? {
+        target: 'pino-pretty',
+        options: { colorize: true }
+      }
+    : undefined
 });
 
 let tokenCipher = createCipher();
