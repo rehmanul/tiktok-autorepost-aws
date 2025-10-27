@@ -8,6 +8,7 @@ apps/**/.turbo/
 packages/**/.turbo/
 .next/
 apps/**/.next/
+apps/**/out/
 .env
 .env.*
 *.log
