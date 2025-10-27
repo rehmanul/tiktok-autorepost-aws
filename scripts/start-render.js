@@ -1,6 +1,7 @@
-import { spawn } from 'node:child_process';
+#!/usr/bin/env node
+const { spawn } = require('node:child_process');
 
-function runProcess(command: string, args: string[], name: string) {
+function runProcess(command, args, name) {
   const child = spawn(command, args, {
     stdio: 'inherit',
     env: process.env

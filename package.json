@@ -15,7 +15,7 @@
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "smoke:test": "node tests/smoke/run-smoke.js",
-    "render:start": "ts-node scripts/start-render.ts"
+    "render:start": "node scripts/start-render.js"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
