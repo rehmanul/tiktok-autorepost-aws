@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { json, urlencoded } from 'express';
@@ -14,7 +14,10 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api', {
-    exclude: ['health']
+    exclude: [
+      { path: '', method: RequestMethod.ALL },
+      { path: 'health', method: RequestMethod.ALL }
+    ]
   });
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') ?? true,
