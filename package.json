@@ -11,6 +11,7 @@
     "dev": "turbo dev",
     "dev:services": "turbo run dev --filter=@autorepost/api --filter=@autorepost/worker --parallel",
     "build": "turbo build",
+    "build:render": "turbo build --filter=@autorepost/api --filter=@autorepost/worker --filter=@autorepost/web && node scripts/copy-web-build.js",
     "lint": "turbo lint",
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",

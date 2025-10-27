@@ -3,7 +3,7 @@ services:
     name: autorepost-api
     env: node
     rootDir: .
-    buildCommand: npm install && npm run build -- --filter=@autorepost/api --filter=@autorepost/worker
+    buildCommand: npm install && npm run build:render
     startCommand: npm run render:start
     plan: free
     envVars:
