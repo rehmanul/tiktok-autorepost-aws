@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import {
   PrometheusModule,
   makeCounterProvider,
@@ -26,7 +27,11 @@ import { MetricsInterceptor } from './metrics.interceptor';
       labelNames: ['method', 'path'],
       buckets: [0.05, 0.1, 0.25, 0.5, 1, 2, 5]
     }),
-    MetricsInterceptor
+    MetricsInterceptor,
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: MetricsInterceptor
+    }
   ],
   exports: [PrometheusModule, MetricsInterceptor]
 })

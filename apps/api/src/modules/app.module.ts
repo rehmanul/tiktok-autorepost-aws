@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import appConfig from '../config/app.config';
 import { HealthController } from '../controllers/health.controller';
@@ -11,7 +10,6 @@ import { JobsModule } from './jobs/jobs.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { RulesModule } from './rules/rules.module';
 import { MetricsModule } from './metrics/metrics.module';
-import { MetricsInterceptor } from './metrics/metrics.interceptor';
 
 @Module({
   imports: [
@@ -28,12 +26,6 @@ import { MetricsInterceptor } from './metrics/metrics.interceptor';
     RulesModule,
     MetricsModule
   ],
-  controllers: [HealthController],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: MetricsInterceptor
-    }
-  ]
+  controllers: [HealthController]
 })
 export class AppModule {}
