@@ -3,6 +3,7 @@ import { ConnectionsService } from './connections.service';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionStatusDto } from './dto/update-connection-status.dto';
 import { ListConnectionsDto } from './dto/list-connections.dto';
+import { ConnectionsOverviewDto } from './dto/connections-overview.dto';
 
 @Controller('connections')
 export class ConnectionsController {
@@ -11,6 +12,11 @@ export class ConnectionsController {
   @Post()
   create(@Body() dto: CreateConnectionDto) {
     return this.connections.create(dto);
+  }
+
+  @Get('overview')
+  overview(@Query() query: ConnectionsOverviewDto) {
+    return this.connections.overview(query);
   }
 
   @Get()

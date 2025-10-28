@@ -7,7 +7,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested,
   IsObject
 } from 'class-validator';
 import { Type } from 'class-transformer';

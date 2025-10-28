@@ -10,6 +10,11 @@ import { JobsModule } from './jobs/jobs.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { RulesModule } from './rules/rules.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { UsersModule } from './users/users.module';
+import { ActivityModule } from './activity/activity.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -24,7 +29,12 @@ import { MetricsModule } from './metrics/metrics.module';
     JobsModule,
     ConnectionsModule,
     RulesModule,
-    MetricsModule
+    MetricsModule,
+    DashboardModule,
+    TenantsModule,
+    UsersModule,
+    ActivityModule,
+    SettingsModule
   ],
   controllers: [HealthController]
 })

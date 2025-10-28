@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Connection, JobKind, Prisma, SocialPlatform } from '@prisma/client';
+import { Connection, ConnectionStatus, JobKind, Prisma, SocialPlatform } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { TokenCipherService } from '../security/token-cipher.service';
 import { JobsService } from '../jobs/jobs.service';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionStatusDto } from './dto/update-connection-status.dto';
+import { ConnectionsOverviewDto } from './dto/connections-overview.dto';
 
 interface ListConnectionsOptions {
   tenantId: string;
@@ -80,6 +81,75 @@ export class ConnectionsService {
     return connections.map((connection) => this.toResponse(connection));
   }
 
+  async overview(options: ConnectionsOverviewDto) {
+    const where = options.tenantId ? { tenantId: options.tenantId } : undefined;
+    const now = Date.now();
+    const nextDay = new Date(now + 24 * 60 * 60 * 1000);
+
+    const [totalConnections, expiringSoon, grouped, recent] = await Promise.all([
+      this.prisma.connection.count({ where }),
+      this.prisma.connection.count({
+        where: {
+          ...where,
+          expiresAt: {
+            not: null,
+            lte: nextDay
+          }
+        }
+      }),
+      this.prisma.connection.groupBy({
+        by: ['platform', 'status'],
+        where,
+        _count: { _all: true }
+      }),
+      this.prisma.connection.findMany({
+        where,
+        orderBy: {
+          updatedAt: 'desc'
+        },
+        take: 10,
+        select: {
+          id: true,
+          tenantId: true,
+          userId: true,
+          platform: true,
+          accountHandle: true,
+          accountDisplayName: true,
+          status: true,
+          expiresAt: true,
+          lastSyncedAt: true,
+          updatedAt: true,
+          tenant: {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          }
+        }
+      })
+    ]);
+
+    return {
+      totalConnections,
+      expiringWithin24h: expiringSoon,
+      byPlatform: this.buildPlatformSummary(grouped),
+      recent: recent.map((connection) => ({
+        id: connection.id,
+        tenantId: connection.tenantId,
+        tenant: connection.tenant,
+        userId: connection.userId,
+        platform: connection.platform,
+        accountHandle: connection.accountHandle,
+        accountDisplayName: connection.accountDisplayName,
+        status: connection.status,
+        expiresAt: connection.expiresAt,
+        lastSyncedAt: connection.lastSyncedAt,
+        updatedAt: connection.updatedAt
+      }))
+    };
+  }
+
   async updateStatus(connectionId: string, dto: UpdateConnectionStatusDto) {
     const existing = await this.prisma.connection.findUniqueOrThrow({
       where: { id: connectionId },
@@ -99,9 +169,13 @@ export class ConnectionsService {
         lastErrorAt: new Date().toISOString()
       } as Prisma.InputJsonValue;
     } else if (dto.status === 'ACTIVE' && existingMetadata) {
-      const { lastErrorMessage, lastErrorAt, ...rest } = existingMetadata;
-      updateData.metadata = Object.keys(rest).length
-        ? (rest as Prisma.InputJsonValue)
+      const sanitized: Prisma.JsonObject = {
+        ...(existingMetadata as Prisma.JsonObject)
+      };
+      delete sanitized.lastErrorMessage;
+      delete sanitized.lastErrorAt;
+      updateData.metadata = Object.keys(sanitized).length
+        ? (sanitized as Prisma.InputJsonValue)
         : Prisma.JsonNull;
     }
 
@@ -111,6 +185,75 @@ export class ConnectionsService {
     });
 
     return this.toResponse(connection);
+  }
+
+  private buildPlatformSummary(
+    groups: Array<{
+      platform: SocialPlatform;
+      status: ConnectionStatus;
+      _count: { _all: number };
+    }>
+  ) {
+    const summary: Record<
+      SocialPlatform,
+      {
+        platform: SocialPlatform;
+        total: number;
+        status: Record<ConnectionStatus, number>;
+      }
+    > = {
+      TIKTOK: {
+        platform: SocialPlatform.TIKTOK,
+        total: 0,
+        status: {
+          ACTIVE: 0,
+          EXPIRED: 0,
+          ERROR: 0,
+          REVOKED: 0
+        }
+      },
+      INSTAGRAM: {
+        platform: SocialPlatform.INSTAGRAM,
+        total: 0,
+        status: {
+          ACTIVE: 0,
+          EXPIRED: 0,
+          ERROR: 0,
+          REVOKED: 0
+        }
+      },
+      YOUTUBE: {
+        platform: SocialPlatform.YOUTUBE,
+        total: 0,
+        status: {
+          ACTIVE: 0,
+          EXPIRED: 0,
+          ERROR: 0,
+          REVOKED: 0
+        }
+      },
+      TWITTER: {
+        platform: SocialPlatform.TWITTER,
+        total: 0,
+        status: {
+          ACTIVE: 0,
+          EXPIRED: 0,
+          ERROR: 0,
+          REVOKED: 0
+        }
+      }
+    };
+
+    for (const group of groups) {
+      const bucket = summary[group.platform];
+      if (!bucket) {
+        continue;
+      }
+      bucket.total += group._count._all;
+      bucket.status[group.status] += group._count._all;
+    }
+
+    return Object.values(summary);
   }
 
   private toResponse(connection: Connection) {

@@ -32,7 +32,7 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true }));
 
   const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
+  prismaService.enableShutdownHooks(app);
 
   const clientPath = join(__dirname, '..', 'client');
   if (existsSync(clientPath)) {
