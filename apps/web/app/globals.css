@@ -55,5 +55,3 @@ body {
 body {
   @apply bg-background text-foreground antialiased;
 }
-:root {
-  --background: 0 0% 100%;
