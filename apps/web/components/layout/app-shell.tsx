@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Menu className="h-4 w-4" />
               </Button>
             </div>
-            <Link href="/" className="text-lg font-semibold tracking-tight">
+            <Link href="/console" className="text-lg font-semibold tracking-tight">
               Autorepost Dashboard
             </Link>
             <div className="ml-auto flex items-center gap-3">

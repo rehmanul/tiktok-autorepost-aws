@@ -6,14 +6,14 @@ import { Building2, Cog, LayoutDashboard, Plug, Repeat, Upload, Users, Workflow 
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/connections', label: 'Connections', icon: Plug },
-  { href: '/rules', label: 'Automation Rules', icon: Repeat },
-  { href: '/jobs', label: 'Processing Jobs', icon: Workflow },
-  { href: '/activity', label: 'Activity', icon: Upload },
-  { href: '/users', label: 'User Directory', icon: Users },
-  { href: '/tenants', label: 'Tenants', icon: Building2 },
-  { href: '/settings', label: 'Settings', icon: Cog }
+  { href: '/console', label: 'Overview', icon: LayoutDashboard },
+  { href: '/console/connections', label: 'Connections', icon: Plug },
+  { href: '/console/rules', label: 'Automation Rules', icon: Repeat },
+  { href: '/console/jobs', label: 'Processing Jobs', icon: Workflow },
+  { href: '/console/activity', label: 'Activity', icon: Upload },
+  { href: '/console/users', label: 'User Directory', icon: Users },
+  { href: '/console/tenants', label: 'Tenants', icon: Building2 },
+  { href: '/console/settings', label: 'Settings', icon: Cog }
 ];
 
 export function SidebarNav() {
@@ -28,7 +28,7 @@ export function SidebarNav() {
       <nav className="flex-1 space-y-1 px-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
