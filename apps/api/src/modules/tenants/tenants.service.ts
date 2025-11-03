@@ -14,7 +14,7 @@ interface TenantListItem {
   lastActivityAt: Date | null;
 }
 
-interface TenantListResult {
+export interface TenantListResult {
   items: TenantListItem[];
   nextCursor: string | null;
   hasMore: boolean;
@@ -24,19 +24,22 @@ interface TenantListResult {
 export class TenantsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(dto: ListTenantsDto): Promise<TenantListResult> {
+  async list(dto: ListTenantsDto, tenantId?: string): Promise<TenantListResult> {
     const take = Math.min(dto.limit ?? 50, 200);
     const search = dto.search?.trim();
 
     const tenants = await this.prisma.tenant.findMany({
-      where: search
-        ? {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { slug: { contains: search, mode: 'insensitive' } }
-            ]
-          }
-        : undefined,
+      where: {
+        ...(tenantId ? { id: tenantId } : {}),
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { slug: { contains: search, mode: 'insensitive' } }
+              ]
+            }
+          : {})
+      },
       orderBy: [
         { createdAt: 'desc' },
         { id: 'desc' }

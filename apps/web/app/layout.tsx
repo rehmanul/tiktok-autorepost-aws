@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import '@/app/globals.css';
 
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/components/auth/auth-provider';
+import { Toaster } from '@/components/toaster';
 import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
@@ -18,7 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={cn('min-h-screen bg-background font-sans antialiased', inter.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -20,7 +20,7 @@ interface AuditEventListItem {
   createdAt: Date;
 }
 
-interface AuditEventListResult {
+export interface AuditEventListResult {
   items: AuditEventListItem[];
   nextCursor: string | null;
   hasMore: boolean;

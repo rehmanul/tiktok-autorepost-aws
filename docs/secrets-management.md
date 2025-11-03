@@ -32,6 +32,10 @@ Each secret should contain a JSON payload similar to:
   "TWITTER_CONSUMER_KEY": "...",
   "TWITTER_CONSUMER_SECRET": "...",
   "PROMETHEUS_PUSH_URL": "https://push.example.com/metrics"
+  "SUPABASE_URL": "https://xyz.supabase.co",
+  "SUPABASE_SERVICE_ROLE_KEY": "...",
+  "SUPABASE_JWT_SECRET": "...",
+  "SUPABASE_ANON_KEY": "..."
 }
 ```
 

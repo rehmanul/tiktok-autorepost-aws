@@ -1,16 +1,25 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTenant } from '@/components/tenant/tenant-provider';
+import { useAuth } from '@/components/auth/auth-provider';
 
 export function AccountMenu() {
-  const operatorName = process.env.NEXT_PUBLIC_OPERATOR_NAME ?? 'Operator';
-  const operatorEmail = process.env.NEXT_PUBLIC_OPERATOR_EMAIL;
-  const tenantLabel = process.env.NEXT_PUBLIC_OPERATOR_TENANT ?? 'Multi-tenant session';
-  const initials = getInitials(operatorName);
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const { tenant, tenantId } = useTenant();
+  
+  const operatorName = user?.displayName ?? 'User';
+  const operatorEmail = user?.email ?? '';
+  const initials = getInitials(operatorName);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   return (
     <Popover>
@@ -25,18 +34,18 @@ export function AccountMenu() {
       <PopoverContent align="end" className="w-56 space-y-3">
         <div>
           <p className="text-sm font-semibold text-foreground">{operatorName}</p>
-          <p className="text-xs text-muted-foreground">
-            {operatorEmail ?? 'Session authenticated via secure cookie'}
+          <p className="text-xs text-muted-foreground">{operatorEmail}</p>
+          <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+            {user?.role ?? 'USER'}
           </p>
-          <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{tenantLabel}</p>
         </div>
         <p className="text-xs text-muted-foreground">
           Active scope: <span className="font-semibold text-foreground">{tenant ? tenant.name : 'All tenants'}</span>
           {tenantId ? ` (${tenantId})` : ''}
         </p>
-        <p className="text-xs text-muted-foreground">
-          Use the tenant selector in the header to change the operational context.
-        </p>
+        <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+          Sign Out
+        </Button>
       </PopoverContent>
     </Popover>
   );
@@ -46,5 +55,5 @@ function getInitials(name: string) {
   const parts = name.trim().split(/\s+/);
   const letters = parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '');
   const fallback = letters.join('');
-  return fallback || 'OP';
+  return fallback || 'U';
 }

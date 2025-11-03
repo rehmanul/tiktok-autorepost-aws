@@ -13,11 +13,46 @@ This repository houses the multi-service TikTok autoreposting platform. The acti
 - `docs` – Living documentation and implementation roadmap.
 - `drafts` – Archived legacy Vercel API, research files, and experimental code.
 
-### Getting Started
-1. Install dependencies at the repo root: `npm install`.
-2. Copy `env.production.example` (or your own secrets) into a `.env` file for local development.
-3. Run all services via Turborepo: `npm run dev`.
-   - You can target individual apps with `npm run dev -- --filter=@autorepost/api`, etc.
+### Quick Start
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Setup environment**:
+   ```bash
+   npm run generate:token-key
+   cp env.production.example .env
+   # Edit .env with your credentials
+   ```
+
+3. **Initialize database**:
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
+
+4. **Create admin user**:
+   ```bash
+   npm run setup:supabase
+   ```
+
+5. **Start development**:
+   ```bash
+   npm run dev
+   ```
+   - API: http://localhost:4000
+   - Web: http://localhost:3000
+   - Worker: runs automatically
+
+### 📚 Documentation
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 15 minutes
+- **[Setup Guide](docs/SETUP.md)** - Complete production setup
+- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to production
+- **[Admin Setup](ADMIN_SETUP.md)** - Create admin user
+- **[Production Status](docs/PRODUCTION_STATUS.md)** - Feature completion status
 
 ### Additional Notes
 - The legacy single-function Vercel deployment now lives in `drafts/legacy-vercel-api`. Port any still-relevant scraping logic into `packages/integrations-tiktok` before deletion.

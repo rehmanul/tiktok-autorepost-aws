@@ -22,7 +22,7 @@ interface UserListItem {
   lastActivityAt: Date | null;
 }
 
-interface UserListResult {
+export interface UserListResult {
   items: UserListItem[];
   nextCursor: string | null;
   hasMore: boolean;

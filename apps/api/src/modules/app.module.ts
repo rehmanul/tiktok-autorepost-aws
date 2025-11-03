@@ -15,6 +15,10 @@ import { TenantsModule } from './tenants/tenants.module';
 import { UsersModule } from './users/users.module';
 import { ActivityModule } from './activity/activity.module';
 import { SettingsModule } from './settings/settings.module';
+import { OAuthModule } from './oauth/oauth.module';
+import { AuthModule } from './auth/auth.module';
+import { ThrottlerConfigModule } from './throttler/throttler.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -22,6 +26,8 @@ import { SettingsModule } from './settings/settings.module';
       isGlobal: true,
       load: [appConfig]
     }),
+    ScheduleModule.forRoot(),
+    ThrottlerConfigModule,
     DatabaseModule,
     StorageModule,
     QueueModule,
@@ -34,7 +40,9 @@ import { SettingsModule } from './settings/settings.module';
     TenantsModule,
     UsersModule,
     ActivityModule,
-    SettingsModule
+    SettingsModule,
+    OAuthModule,
+    AuthModule
   ],
   controllers: [HealthController]
 })

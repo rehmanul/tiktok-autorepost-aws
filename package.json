@@ -16,21 +16,30 @@
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "smoke:test": "node tests/smoke/run-smoke.js",
-    "render:start": "node scripts/start-render.js"
+    "render:start": "node scripts/start-render.js",
+    "setup:supabase": "ts-node scripts/setup-supabase.ts",
+    "generate:token-key": "ts-node scripts/generate-token-key.ts",
+    "verify:setup": "ts-node scripts/verify-setup.ts",
+    "db:migrate": "cd apps/api && npx prisma migrate deploy",
+    "db:seed": "cd apps/api && npx prisma db seed",
+    "db:studio": "cd apps/api && npx prisma studio"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
     "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
-    "typescript-eslint": "^8.46.2",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "turbo": "^2.1.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.46.2"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-popover": "^1.1.15"
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-select": "^2.2.6"
   }
 }

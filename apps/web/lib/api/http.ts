@@ -34,14 +34,33 @@ export async function requestJson<T>(
     method?: string;
     searchParams?: Record<string, string | undefined>;
     signal?: AbortSignal;
+    body?: string;
+    headers?: Record<string, string>;
   } = {}
 ): Promise<T> {
   const url = buildApiUrl(path, options.searchParams);
+  
+  const accessToken = typeof window !== 'undefined' 
+    ? window.localStorage.getItem('auth.accessToken') 
+    : null;
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...options.headers
+  };
+
+  if (options.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch(url, {
     method: options.method ?? 'GET',
-    headers: {
-      Accept: 'application/json'
-    },
+    headers,
+    body: options.body,
     credentials: 'include',
     cache: 'no-store',
     signal: options.signal
