@@ -11,12 +11,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
-
-// TODO: Get from auth context
-const MOCK_TENANT_ID = 'test-tenant';
-const MOCK_USER_ID = 'test-user';
+import { useTenant } from '@/components/tenant/tenant-provider';
+import { useAuth } from '@/components/auth/auth-provider';
 
 export default function ConnectionsPage() {
+  const { tenantId, tenant } = useTenant();
+  const { user } = useAuth();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,8 +25,8 @@ export default function ConnectionsPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform | null>(null);
 
   const { isConnecting, connectPlatform } = useOAuth({
-    tenantId: MOCK_TENANT_ID,
-    userId: MOCK_USER_ID,
+    tenantId: tenantId ?? '',
+    userId: user?.id ?? '',
     onSuccess: () => {
       setSuccessMessage('Account connected successfully!');
       loadConnections();
@@ -39,11 +39,12 @@ export default function ConnectionsPage() {
   });
 
   const loadConnections = async () => {
+    if (!tenantId || !user) return;
     try {
       setIsLoading(true);
       const data = await connectionsApi.list({
-        tenantId: MOCK_TENANT_ID,
-        userId: MOCK_USER_ID,
+        tenantId,
+        userId: user.id,
       });
       setConnections(data);
     } catch (err) {
@@ -55,8 +56,10 @@ export default function ConnectionsPage() {
   };
 
   useEffect(() => {
-    loadConnections();
-  }, []);
+    if (tenantId && user) {
+      loadConnections();
+    }
+  }, [tenantId, user]);
 
   const handleConnect = (platform: SocialPlatform) => {
     setSelectedPlatform(platform);
@@ -206,8 +209,8 @@ export default function ConnectionsPage() {
       <TikTokCookieModal
         open={showTikTokModal}
         onOpenChange={setShowTikTokModal}
-        tenantId={MOCK_TENANT_ID}
-        userId={MOCK_USER_ID}
+        tenantId={tenantId ?? ''}
+        userId={user?.id ?? ''}
         onSuccess={() => {
           setSuccessMessage('TikTok account connected successfully!');
           loadConnections();
