@@ -54,7 +54,9 @@ This repository houses the multi-service TikTok autoreposting platform. The acti
 - **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete reference for all configuration options
 
 #### Deployment
-- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to production (Render.com, Vercel)
+- **[AWS Quick Start](AWS_QUICKSTART.md)** - ⚡ Deploy to AWS in 15 minutes
+- **[AWS Deployment Guide](docs/AWS_DEPLOYMENT.md)** - Complete AWS ECS Fargate setup
+- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to Render.com or Vercel
 - **[Admin Setup](ADMIN_SETUP.md)** - Create admin user and configure OAuth
 - **[Production Status](docs/PRODUCTION_STATUS.md)** - Feature completion status
 
