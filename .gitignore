@@ -19,3 +19,15 @@ coverage/
 infra/terraform/.terraform/
 infra/terraform/**/.terraform/*
 infra/terraform/**/terraform.tfstate*
+
+# Claude Code artifacts
+.claude/
+
+# Temporary setup files
+setup-automated.bat
+setup-automated.sh
+run-setup.bat
+QUICK_FIX.md
+START_HERE.md
+SETUP_CHECKLIST.md
+PROJECT_IMPROVEMENTS_SUMMARY.md

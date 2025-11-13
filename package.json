@@ -20,16 +20,19 @@
     "setup:supabase": "ts-node scripts/setup-supabase.ts",
     "generate:token-key": "ts-node scripts/generate-token-key.ts",
     "verify:setup": "ts-node scripts/verify-setup.ts",
-    "db:migrate": "cd apps/api && npx prisma migrate deploy",
-    "db:seed": "cd apps/api && npx prisma db seed",
-    "db:studio": "cd apps/api && npx prisma studio"
+    "db:migrate": "npx prisma migrate deploy --schema=./prisma/schema.prisma",
+    "db:seed": "npx prisma db seed --schema=./prisma/schema.prisma",
+    "db:studio": "npx prisma studio --schema=./prisma/schema.prisma",
+    "db:generate": "npx prisma generate --schema=./prisma/schema.prisma"
   },
   "devDependencies": {
+    "@prisma/client": "^5.17.0",
     "@types/node": "^24.9.1",
     "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "prettier": "^3.2.5",
+    "prisma": "^5.17.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.1.1",
     "typescript": "^5.4.5",
@@ -41,5 +44,8 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

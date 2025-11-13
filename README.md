@@ -48,11 +48,19 @@ This repository houses the multi-service TikTok autoreposting platform. The acti
 
 ### 📚 Documentation
 
+#### Getting Started
 - **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 15 minutes
 - **[Setup Guide](docs/SETUP.md)** - Complete production setup
-- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to production
-- **[Admin Setup](ADMIN_SETUP.md)** - Create admin user
+- **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete reference for all configuration options
+
+#### Deployment
+- **[Deployment Guide](DEPLOYMENT.md)** - Deploy to production (Render.com, Vercel)
+- **[Admin Setup](ADMIN_SETUP.md)** - Create admin user and configure OAuth
 - **[Production Status](docs/PRODUCTION_STATUS.md)** - Feature completion status
+
+#### Security & Operations
+- **[Security Checklist](docs/SECURITY_CHECKLIST.md)** - Pre-deployment security verification
+- **[Observability](docs/observability.md)** - Metrics, logging, and monitoring
 
 ### Additional Notes
 - The legacy single-function Vercel deployment now lives in `drafts/legacy-vercel-api`. Port any still-relevant scraping logic into `packages/integrations-tiktok` before deletion.
