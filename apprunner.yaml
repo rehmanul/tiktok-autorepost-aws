@@ -1,0 +1,18 @@
+version: 1.0
+runtime: nodejs20
+build:
+  commands:
+    build:
+      - npm ci
+      - npx prisma generate --schema=./prisma/schema.prisma
+      - npm run build --workspace=@autorepost/api
+run:
+  runtime-version: 20
+  command: node apps/api/dist/main.js
+  network:
+    port: 4000
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: "4000"
