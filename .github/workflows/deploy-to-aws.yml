@@ -1,0 +1,55 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: 379262059058
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and push API image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        echo "Building API image..."
+        docker build -t $ECR_REGISTRY/autorepost-api:latest -f apps/api/Dockerfile .
+        docker push $ECR_REGISTRY/autorepost-api:latest
+        echo "✅ API image pushed: $ECR_REGISTRY/autorepost-api:latest"
+
+    - name: Build and push Worker image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        echo "Building Worker image..."
+        docker build -t $ECR_REGISTRY/autorepost-worker:latest -f apps/worker/Dockerfile .
+        docker push $ECR_REGISTRY/autorepost-worker:latest
+        echo "✅ Worker image pushed: $ECR_REGISTRY/autorepost-worker:latest"
+
+    - name: Deployment complete
+      run: |
+        echo "🎉 Docker images built and pushed successfully!"
+        echo "API Image: ${{ steps.login-ecr.outputs.registry }}/autorepost-api:latest"
+        echo "Worker Image: ${{ steps.login-ecr.outputs.registry }}/autorepost-worker:latest"
+        echo ""
+        echo "Next: Deploy to App Runner"
