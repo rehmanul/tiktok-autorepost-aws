@@ -35,10 +35,3 @@ services:
         sync: false
       - key: PROMETHEUS_ENABLED
         value: "false"
-
-
-  - type: static
-    name: autorepost-web
-    rootDir: .
-    buildCommand: npm install && npm run build -- --filter=@autorepost/web
-    publishPath: apps/web/out
