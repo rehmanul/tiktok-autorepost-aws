@@ -35,3 +35,19 @@ services:
         sync: false
       - key: PROMETHEUS_ENABLED
         value: "false"
+
+  - type: web
+    name: autorepost-web
+    env: static
+    buildCommand: NODE_ENV=development npm ci && npx turbo build --filter=@autorepost/web
+    staticPublishPath: ./apps/web/out
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://qjgplkbstelsbakaxwdc.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ3Bsa2JzdGVsc2Jha2F4d2RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MzIwMDYsImV4cCI6MjA3ODUwODAwNn0.YVZXcroP84eWYIXV4Hwi2I1hbgrM6qlTnwBQVMFvp18
+      - key: NEXT_PUBLIC_API_URL
+        value: https://autorepost-api.onrender.com/api
