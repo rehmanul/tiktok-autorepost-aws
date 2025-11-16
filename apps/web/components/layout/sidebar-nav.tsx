@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, Cog, LayoutDashboard, Plug, Repeat, Upload, Users, Workflow } from 'lucide-react';
+import { Building2, Cog, LayoutDashboard, Plug, Repeat, Upload, Users, Workflow, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/console', label: 'Overview', icon: LayoutDashboard },
   { href: '/console/connections', label: 'Connections', icon: Plug },
   { href: '/console/rules', label: 'Automation Rules', icon: Repeat },
+  { href: '/console/recent-posts', label: 'Recent Posts', icon: FileText },
   { href: '/console/jobs', label: 'Processing Jobs', icon: Workflow },
   { href: '/console/activity', label: 'Activity', icon: Upload },
   { href: '/console/users', label: 'User Directory', icon: Users },

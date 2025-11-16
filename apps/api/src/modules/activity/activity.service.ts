@@ -87,4 +87,69 @@ export class ActivityService {
     }
     return metadata;
   }
+
+  async getRecentPosts(tenantId: string, userId: string, userRole: string, limit: number = 50) {
+    const where: Prisma.RepostActivityWhereInput = {
+      postLog: {
+        tenantId: tenantId
+      }
+    };
+
+    // Non-admin users can only see their own posts
+    if (userRole !== 'ADMIN') {
+      where.postLog = {
+        ...where.postLog,
+        userId: userId
+      };
+    }
+
+    const repostActivities = await this.prisma.repostActivity.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: Math.min(limit, 200),
+      include: {
+        postLog: {
+          select: {
+            id: true,
+            tiktokUrl: true,
+            caption: true,
+            sourcePublishedAt: true,
+            sourceConnection: {
+              select: {
+                accountHandle: true,
+                platform: true
+              }
+            }
+          }
+        },
+        destination: {
+          select: {
+            connection: {
+              select: {
+                platform: true,
+                accountHandle: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return repostActivities.map((activity) => ({
+      id: activity.id,
+      status: activity.status,
+      tiktokUrl: activity.postLog.tiktokUrl,
+      tiktokHandle: activity.postLog.sourceConnection.accountHandle,
+      repostUrl: activity.repostUrl,
+      destinationPlatform: activity.destination.connection.platform,
+      destinationHandle: activity.destination.connection.accountHandle,
+      caption: activity.postLog.caption,
+      publishedAt: activity.postLog.sourcePublishedAt,
+      completedAt: activity.completedAt,
+      errorMessage: activity.errorMessage,
+      createdAt: activity.createdAt
+    }));
+  }
 }

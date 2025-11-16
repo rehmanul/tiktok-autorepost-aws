@@ -19,4 +19,10 @@ export class ActivityController {
     }
     return this.activity.listAuditEvents(query);
   }
+
+  @Get('recent-posts')
+  getRecentPosts(@Query('limit') limit?: string, @CurrentUser() user: AuthUser) {
+    const limitNum = limit ? parseInt(limit, 10) : 50;
+    return this.activity.getRecentPosts(user.tenantId, user.id, user.role, limitNum);
+  }
 }
