@@ -21,7 +21,7 @@ export class ActivityController {
   }
 
   @Get('recent-posts')
-  getRecentPosts(@Query('limit') limit?: string, @CurrentUser() user: AuthUser) {
+  getRecentPosts(@CurrentUser() user: AuthUser, @Query('limit') limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 50;
     return this.activity.getRecentPosts(user.tenantId, user.id, user.role, limitNum);
   }

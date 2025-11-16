@@ -91,17 +91,10 @@ export class ActivityService {
   async getRecentPosts(tenantId: string, userId: string, userRole: string, limit: number = 50) {
     const where: Prisma.RepostActivityWhereInput = {
       postLog: {
-        tenantId: tenantId
+        tenantId: tenantId,
+        ...(userRole !== 'ADMIN' && { userId: userId })
       }
     };
-
-    // Non-admin users can only see their own posts
-    if (userRole !== 'ADMIN') {
-      where.postLog = {
-        ...where.postLog,
-        userId: userId
-      };
-    }
 
     const repostActivities = await this.prisma.repostActivity.findMany({
       where,
