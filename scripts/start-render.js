@@ -19,8 +19,8 @@ function runProcess(command, args, name) {
   return child;
 }
 
-const apiPath = 'apps/api/dist/apps/api/src/main.js';
-const workerPath = 'apps/worker/dist/apps/worker/src/main.js';
+const apiPath = 'apps/api/dist/main.js';
+const workerPath = 'apps/worker/dist/main.js';
 
 console.log('Starting autorepost API...');
 const api = runProcess('node', [apiPath], 'API');
