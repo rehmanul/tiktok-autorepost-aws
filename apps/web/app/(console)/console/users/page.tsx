@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { RefreshCw, Search } from 'lucide-react';
+import { RefreshCw, Search, Eye } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchUsers, type UserSummary } from '@/lib/api/users';
 import { useTenant } from '@/components/tenant/tenant-provider';
+import { UserConnectionsDialog } from '@/components/admin/user-connections-dialog';
+import { useAuth } from '@/components/auth/auth-provider';
 
 dayjs.extend(relativeTime);
 
@@ -33,6 +35,7 @@ const ROLE_FILTERS: Array<{ label: string; value: '' | UserSummary['role'] }> = 
 
 export default function UsersPage() {
   const { tenantId, tenant } = useTenant();
+  const { session } = useAuth();
   const PAGE_SIZE = 50;
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +48,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<'' | UserSummary['role']>('');
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -225,7 +229,15 @@ export default function UsersPage() {
                         {user.status.toLowerCase()}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">{formatNumber(user.connectionCount)}</td>
+                    <td className="px-3 py-2">
+                      <button
+                        onClick={() => setSelectedUser({ id: user.id, name: user.displayName })}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline text-sm"
+                      >
+                        <Eye className="h-3 w-3" />
+                        {formatNumber(user.connectionCount)} connections
+                      </button>
+                    </td>
                     <td className="px-3 py-2 text-muted-foreground">{formatNumber(user.ruleCount)}</td>
                     <td className="px-3 py-2 text-muted-foreground">{formatNumber(user.jobCount)}</td>
                     <td className="px-3 py-2 text-muted-foreground">
@@ -249,6 +261,18 @@ export default function UsersPage() {
           ) : null}
         </CardContent>
       </Card>
+
+      {/* User Connections Dialog */}
+      {selectedUser && session && (
+        <UserConnectionsDialog
+          open={!!selectedUser}
+          onOpenChange={(open) => !open && setSelectedUser(null)}
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+          apiUrl={process.env.NEXT_PUBLIC_API_URL || ''}
+          accessToken={session.access_token}
+        />
+      )}
     </>
   );
 }
