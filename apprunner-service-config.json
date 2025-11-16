@@ -1,0 +1,57 @@
+{
+  "ServiceName": "TikTok-Auto-Repost-API",
+  "SourceConfiguration": {
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/rehmanul/tiktok-autorepost-aws",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "API",
+        "CodeConfigurationValues": {
+          "Runtime": "NODEJS_18",
+          "BuildCommand": "npm ci && npx prisma generate --schema=./prisma/schema.prisma && npm run build --workspace=@autorepost/api",
+          "StartCommand": "node apps/api/dist/main.js",
+          "Port": "4000",
+          "RuntimeEnvironmentVariables": {
+            "NODE_ENV": "production",
+            "PORT": "4000",
+            "DATABASE_URL": "postgresql://postgres.qjgplkbstelsbakaxwdc:L7bGkHTHZN2af8Ry@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10",
+            "REDIS_URL": "rediss://default:AWyxAAIncDI2NjA5ZTRhNDNmN2E0NDY5YmUzMTJjOWU5MDA2YmUzYnAyMjc4MjU@main-muskrat-27825.upstash.io:6379",
+            "REDIS_TLS": "true",
+            "SUPABASE_URL": "https://qjgplkbstelsbakaxwdc.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ3Bsa2JzdGVsc2Jha2F4d2RjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjkzMjAwNiwiZXhwIjoyMDc4NTA4MDA2fQ.G7IfTq16E6IQexgsGPdIWAQcxfKMfEHMfqjuQHg7df4",
+            "SUPABASE_JWT_SECRET": "GsWuK8uDWE06z7gHw53XTlS3BcOzTimPfZFv8KzCiZK2P+1uQQHblrWvSR3pCgPCQE+kIDX5qey1ZF8dJUA3rQ==",
+            "TOKEN_ENCRYPTION_KEY": "kX7mP9vZ2nQ4wT8yE5rL3jK6hN1gF0dS9aV4cM8xB2u=",
+            "S3_REGION": "us-east-1",
+            "S3_ENDPOINT": "https://qjgplkbstelsbakaxwdc.storage.supabase.co/storage/v1/s3",
+            "S3_FORCE_PATH_STYLE": "true",
+            "S3_BUCKET": "autorepost-media",
+            "S3_ACCESS_KEY_ID": "sb_publishable_icEepp4nyWUAgrJ4aVQJkQ_KOAUPJsx",
+            "S3_SECRET_ACCESS_KEY": "sb_secret_GzzF_7dyN5we_zz_D6OB0Q_4-GmsaYh",
+            "WORKER_CONCURRENCY": "2",
+            "LOG_LEVEL": "info",
+            "PROMETHEUS_ENABLED": "true"
+          }
+        }
+      }
+    },
+    "AutoDeploymentsEnabled": true,
+    "AuthenticationConfiguration": {
+      "ConnectionArn": "arn:aws:apprunner:us-east-1:379262059058:connection/Rehmanul/f0322b6b994f4e05a6946766dcc72b5a"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1024",
+    "Memory": "4096"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  }
+}
