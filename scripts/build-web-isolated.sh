@@ -5,10 +5,10 @@ echo "=============================================="
 echo "Building Web App in Complete Isolation"
 echo "=============================================="
 
-# Step 1: Install only web dependencies
-echo "[1/2] Installing web dependencies only..."
+# Step 1: Install web dependencies including devDependencies (needed for tailwindcss)
+echo "[1/2] Installing web dependencies (including dev deps for tailwindcss)..."
 cd apps/web
-npm install --legacy-peer-deps
+NODE_ENV=development npm install --legacy-peer-deps
 
 # Step 2: Build Next.js directly
 echo "[2/2] Building Next.js app..."
