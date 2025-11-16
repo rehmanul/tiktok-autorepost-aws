@@ -39,7 +39,7 @@ services:
   - type: web
     name: autorepost-web
     env: static
-    buildCommand: NODE_ENV=development npm ci && cd apps/web && npm run build
+    buildCommand: NODE_ENV=development npm ci && cd apps/web && npx next build
     staticPublishPath: ./apps/web/out
     plan: free
     envVars:
