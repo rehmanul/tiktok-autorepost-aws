@@ -3,7 +3,7 @@ services:
     name: autorepost-api
     env: node
     rootDir: .
-    buildCommand: npm install && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
+    buildCommand: NODE_ENV=development npm ci && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
     startCommand: npm run render:start
     plan: free
     envVars:
