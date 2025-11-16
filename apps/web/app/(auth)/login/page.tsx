@@ -48,66 +48,65 @@ export default function LoginPage() {
             </p>
           </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-200">
-                  <p className="font-medium">Login Failed</p>
-                  <p className="mt-1">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-medium text-gray-700 dark:text-gray-300">
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  required
-                  disabled={isSubmitting || isLoading}
-                  autoComplete="email"
-                  className="h-12 text-base border-2 focus:border-blue-500 transition-colors"
-                />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-800 dark:text-red-200">
+                <p className="font-medium">Login Failed</p>
+                <p className="mt-1">{error}</p>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  required
-                  disabled={isSubmitting || isLoading}
-                  autoComplete="current-password"
-                  className="h-12 text-base border-2 focus:border-purple-500 transition-colors"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 mt-8"
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-base font-medium text-gray-700 dark:text-gray-300">
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                required
                 disabled={isSubmitting || isLoading}
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-3">
-                    <div className="h-5 w-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
-                    Signing in...
-                  </span>
-                ) : (
-                  'Sign In'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+                autoComplete="email"
+                className="h-12 text-base border-2 focus:border-blue-500 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-base font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                required
+                disabled={isSubmitting || isLoading}
+                autoComplete="current-password"
+                className="h-12 text-base border-2 focus:border-purple-500 transition-colors"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 hover:from-cyan-600 hover:via-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 mt-8"
+              disabled={isSubmitting || isLoading}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-3">
+                  <div className="h-5 w-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
