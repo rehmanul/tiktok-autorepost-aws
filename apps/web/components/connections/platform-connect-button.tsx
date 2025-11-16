@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { SocialPlatform } from '@/lib/api/connections';
 import { PlatformIcon, getPlatformConfig } from './platform-icon';
 import { Button } from '@/components/ui/button';

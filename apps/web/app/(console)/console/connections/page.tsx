@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { connectionsApi, Connection, SocialPlatform } from '@/lib/api/connections';
 import { useOAuth } from '@/lib/hooks/use-oauth';
 import { ConnectionCard } from '@/components/connections/connection-card';
@@ -15,7 +15,7 @@ import { useTenant } from '@/components/tenant/tenant-provider';
 import { useAuth } from '@/components/auth/auth-provider';
 
 export default function ConnectionsPage() {
-  const { tenantId, tenant } = useTenant();
+  const { tenantId } = useTenant();
   const { user } = useAuth();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +23,23 @@ export default function ConnectionsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showTikTokModal, setShowTikTokModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform | null>(null);
+
+  const loadConnections = useCallback(async () => {
+    if (!tenantId || !user) return;
+    try {
+      setIsLoading(true);
+      const data = await connectionsApi.list({
+        tenantId,
+        userId: user.id,
+      });
+      setConnections(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load connections';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tenantId, user]);
 
   const { isConnecting, connectPlatform } = useOAuth({
     tenantId: tenantId ?? '',
@@ -38,28 +55,11 @@ export default function ConnectionsPage() {
     },
   });
 
-  const loadConnections = async () => {
-    if (!tenantId || !user) return;
-    try {
-      setIsLoading(true);
-      const data = await connectionsApi.list({
-        tenantId,
-        userId: user.id,
-      });
-      setConnections(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load connections';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (tenantId && user) {
       loadConnections();
     }
-  }, [tenantId, user]);
+  }, [tenantId, user, loadConnections]);
 
   const handleConnect = (platform: SocialPlatform) => {
     setSelectedPlatform(platform);

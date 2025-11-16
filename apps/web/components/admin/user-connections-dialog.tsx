@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ExternalLink, Plug } from 'lucide-react';
+import { Plug } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -92,7 +92,7 @@ export function UserConnectionsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plug className="h-5 w-5" />
-            {userName}'s Connected Accounts
+            {userName}&apos;s Connected Accounts
           </DialogTitle>
           <DialogDescription>
             View all social media accounts connected by this user

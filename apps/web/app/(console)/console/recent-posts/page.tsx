@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,12 +43,12 @@ export default function RecentPostsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     if (!session) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/activity/recent-posts', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/activity/recent-posts`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -66,11 +66,11 @@ export default function RecentPostsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     loadPosts();
-  }, [session]);
+  }, [loadPosts]);
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Connection, SocialPlatform } from '@/lib/api/connections';
+import { Connection } from '@/lib/api/connections';
 import { PlatformIcon, getPlatformConfig } from './platform-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
