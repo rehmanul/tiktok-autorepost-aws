@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node dist/main.js",
+    "start": "node dist/apps/worker/src/main.js",
     "start:dev": "ts-node --project tsconfig.json src/main.ts",
     "dev": "npm run start:dev",
     "build": "tsc -p tsconfig.json"

@@ -22,9 +22,9 @@ function runProcess(command, args, name, cwd) {
   return child;
 }
 
-// Check if dist files exist
-const apiDist = resolve(__dirname, '../apps/api/dist/main.js');
-const workerDist = resolve(__dirname, '../apps/worker/dist/main.js');
+// Check if dist files exist (nested workspace structure)
+const apiDist = resolve(__dirname, '../apps/api/dist/apps/api/src/main.js');
+const workerDist = resolve(__dirname, '../apps/worker/dist/apps/worker/src/main.js');
 
 if (!existsSync(apiDist)) {
   console.error(`ERROR: API dist file not found at ${apiDist}`);

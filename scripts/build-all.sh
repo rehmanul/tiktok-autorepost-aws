@@ -21,5 +21,5 @@ echo "[5/5] Building @autorepost/worker..."
 cd apps/worker && npm run build && cd ../..
 
 echo "✅ All builds complete!"
-echo "API dist: $(ls -la apps/api/dist/main.js 2>&1 | grep main || echo 'NOT FOUND')"
-echo "Worker dist: $(ls -la apps/worker/dist/main.js 2>&1 | grep main || echo 'NOT FOUND')"
+echo "API dist: $(ls -la apps/api/dist/apps/api/src/main.js 2>&1 | grep main || echo 'NOT FOUND')"
+echo "Worker dist: $(ls -la apps/worker/dist/apps/worker/src/main.js 2>&1 | grep main || echo 'NOT FOUND')"
