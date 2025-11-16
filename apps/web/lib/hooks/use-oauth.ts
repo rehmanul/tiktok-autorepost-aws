@@ -11,6 +11,23 @@ interface UseOAuthOptions {
 export function useOAuth({ tenantId, userId, onSuccess, onError }: UseOAuthOptions) {
   const [isConnecting, setIsConnecting] = useState(false);
 
+  const checkConnectionSuccess = useCallback(async () => {
+    // Check URL params for success
+    const urlParams = new URLSearchParams(window.location.search);
+    const connectionId = urlParams.get('connectionId');
+    const success = urlParams.get('success');
+
+    if (success === 'true' && connectionId) {
+      onSuccess?.(connectionId);
+
+      // Clean up URL params
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+
+    setIsConnecting(false);
+  }, [onSuccess]);
+
   const openOAuthPopup = useCallback(
     async (platform: SocialPlatform) => {
       setIsConnecting(true);
@@ -70,23 +87,6 @@ export function useOAuth({ tenantId, userId, onSuccess, onError }: UseOAuthOptio
     },
     [tenantId, userId, onError, checkConnectionSuccess]
   );
-
-  const checkConnectionSuccess = useCallback(async () => {
-    // Check URL params for success
-    const urlParams = new URLSearchParams(window.location.search);
-    const connectionId = urlParams.get('connectionId');
-    const success = urlParams.get('success');
-
-    if (success === 'true' && connectionId) {
-      onSuccess?.(connectionId);
-      
-      // Clean up URL params
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, '', cleanUrl);
-    }
-
-    setIsConnecting(false);
-  }, [onSuccess]);
 
   return {
     isConnecting,
