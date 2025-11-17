@@ -5,7 +5,6 @@ services:
     rootDir: .
     buildCommand: NODE_ENV=development npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && bash scripts/build-all.sh
     startCommand: npm run render:start
-    plan: free
     envVars:
       - key: NODE_ENV
         value: production
@@ -41,7 +40,6 @@ services:
     env: static
     buildCommand: NODE_ENV=development npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/web
     staticPublishPath: ./apps/web/out
-    plan: free
     envVars:
       - key: NODE_ENV
         value: production
