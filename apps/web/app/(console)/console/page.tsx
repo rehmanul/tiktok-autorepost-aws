@@ -85,25 +85,28 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Operations Overview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor live automation telemetry, OAuth health, and onboarding throughput across the selected scope.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Active scope:{' '}
-            <span className="font-semibold text-foreground">
-              {tenant ? `${tenant.name} (${tenant.slug})` : 'All tenants'}
-            </span>
-          </p>
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 p-8 text-white shadow-2xl mb-6">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">Operations Overview</h1>
+            <p className="mt-2 text-blue-50 text-base">
+              Monitor live automation telemetry, OAuth health, and onboarding throughput across the selected scope.
+            </p>
+            <p className="mt-3 text-sm text-cyan-100">
+              Active scope:{' '}
+              <span className="font-semibold text-white bg-white/20 px-3 py-1 rounded-full">
+                {tenant ? `${tenant.name} (${tenant.slug})` : 'All tenants'}
+              </span>
+            </p>
+          </div>
+          <Button className="gap-2 bg-white text-blue-600 hover:bg-blue-50 shadow-lg" asChild>
+            <a href="https://status.autorepost.dev/runbooks" target="_blank" rel="noreferrer">
+              Open Runbooks
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </Button>
         </div>
-        <Button className="gap-2" variant="outline" asChild>
-          <a href="https://status.autorepost.dev/runbooks" target="_blank" rel="noreferrer">
-            Open Runbooks
-            <ArrowUpRight className="h-4 w-4" />
-          </a>
-        </Button>
       </section>
 
       {error ? (
@@ -113,26 +116,39 @@ export default function HomePage() {
       ) : null}
 
       <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {summaryCards.map((stat) => (
-          <Card key={stat.title} className="shadow-sm">
-            <CardHeader className="gap-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-              <CardDescription className="text-xs">{stat.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <span className="text-3xl font-bold tracking-tight">{stat.value}</span>
-            </CardContent>
-          </Card>
-        ))}
+        {summaryCards.map((stat, index) => {
+          const gradients = [
+            'from-cyan-500 to-blue-500',
+            'from-blue-500 to-purple-500',
+            'from-purple-500 to-pink-500',
+            'from-pink-500 to-rose-500'
+          ];
+          return (
+            <Card key={stat.title} className="shadow-lg border-0 overflow-hidden">
+              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradients[index % 4]}`} />
+              <CardHeader className="gap-1 pt-6">
+                <CardTitle className="text-sm font-semibold text-foreground">{stat.title}</CardTitle>
+                <CardDescription className="text-xs">{stat.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <span className={`text-4xl font-bold tracking-tight bg-gradient-to-r ${gradients[index % 4]} bg-clip-text text-transparent`}>
+                  {stat.value}
+                </span>
+              </CardContent>
+            </Card>
+          );
+        })}
       </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Card className="shadow-sm">
+        <Card className="shadow-lg border-0">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <Plug className="h-5 w-5 text-primary" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg">
+                <Plug className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <CardTitle>Connection Health</CardTitle>
+                <CardTitle className="text-lg">Connection Health</CardTitle>
                 <CardDescription>
                   Real counts by platform, grouped by the underlying OAuth session status.
                 </CardDescription>
@@ -153,12 +169,14 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-lg border-0">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <Repeat className="h-5 w-5 text-primary" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                <Repeat className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <CardTitle>Automation Throughput</CardTitle>
+                <CardTitle className="text-lg">Automation Throughput</CardTitle>
                 <CardDescription>
                   Distribution of repost jobs over the last 24 hours with live retry posture.
                 </CardDescription>
