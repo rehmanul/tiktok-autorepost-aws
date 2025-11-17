@@ -87,25 +87,17 @@ export default function HomePage() {
     <>
       <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 p-8 text-white shadow-2xl mb-6">
         <div className="absolute inset-0 bg-black/10" />
-        <div className="relative flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">Operations Overview</h1>
-            <p className="mt-2 text-blue-50 text-base">
-              Monitor live automation telemetry, OAuth health, and onboarding throughput across the selected scope.
-            </p>
-            <p className="mt-3 text-sm text-cyan-100">
-              Active scope:{' '}
-              <span className="font-semibold text-white bg-white/20 px-3 py-1 rounded-full">
-                {tenant ? `${tenant.name} (${tenant.slug})` : 'All tenants'}
-              </span>
-            </p>
-          </div>
-          <Button className="gap-2 bg-white text-blue-600 hover:bg-blue-50 shadow-lg" asChild>
-            <a href="https://status.autorepost.dev/runbooks" target="_blank" rel="noreferrer">
-              Open Runbooks
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
-          </Button>
+        <div className="relative">
+          <h1 className="text-3xl font-bold tracking-tight lg:text-4xl">Operations Overview</h1>
+          <p className="mt-2 text-blue-50 text-base">
+            Monitor live automation telemetry, OAuth health, and onboarding throughput across the selected scope.
+          </p>
+          <p className="mt-3 text-sm text-cyan-100">
+            Active scope:{' '}
+            <span className="font-semibold text-white bg-white/20 px-3 py-1 rounded-full">
+              {tenant ? `${tenant.name} (${tenant.slug})` : 'All tenants'}
+            </span>
+          </p>
         </div>
       </section>
 
