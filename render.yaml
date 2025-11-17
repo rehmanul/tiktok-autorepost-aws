@@ -3,7 +3,7 @@ services:
     name: autorepost-api
     env: node
     rootDir: .
-    buildCommand: NODE_ENV=development npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && bash scripts/build-all.sh
+    buildCommand: npm ci --include=dev && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
     startCommand: npm run render:start
     envVars:
       - key: NODE_ENV
@@ -38,7 +38,7 @@ services:
   - type: web
     name: autorepost-web
     env: static
-    buildCommand: NODE_ENV=development npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/web
+    buildCommand: npm ci --include=dev && npx turbo build --filter=@autorepost/web
     staticPublishPath: ./apps/web/out
     envVars:
       - key: NODE_ENV
@@ -48,4 +48,4 @@ services:
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqZ3Bsa2JzdGVsc2Jha2F4d2RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MzIwMDYsImV4cCI6MjA3ODUwODAwNn0.YVZXcroP84eWYIXV4Hwi2I1hbgrM6qlTnwBQVMFvp18
       - key: NEXT_PUBLIC_API_URL
-        value: https://autorepost-api.onrender.com/api
+        value: https://autorepost-api-l4oy.onrender.com/api
