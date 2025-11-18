@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class OAuthCallbackDto {
   @IsString()
-  @IsNotEmpty()
-  code!: string;
+  @IsOptional()
+  code?: string;
 
   @IsString()
-  @IsNotEmpty()
-  state!: string;
+  @IsOptional()
+  state?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   error?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   error_description?: string;
 }
