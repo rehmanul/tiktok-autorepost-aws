@@ -37,6 +37,12 @@ export class OAuthController {
       );
     }
 
+    if (!query.code || !query.state) {
+      return res.redirect(
+        `${process.env.WEB_APP_URL}/console/connections?error=${encodeURIComponent('Missing authorization code or state')}`
+      );
+    }
+
     const result = await this.oauthService.handleCallback({
       code: query.code,
       state: query.state
@@ -67,6 +73,12 @@ export class OAuthController {
     if (query.error) {
       return res.redirect(
         `${process.env.WEB_APP_URL}/console/connections?error=${encodeURIComponent(query.error_description || query.error)}`
+      );
+    }
+
+    if (!query.code || !query.state) {
+      return res.redirect(
+        `${process.env.WEB_APP_URL}/console/connections?error=${encodeURIComponent('Missing authorization code or state')}`
       );
     }
 
