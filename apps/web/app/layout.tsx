@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Autorepost | Cross-platform creator automation',
   description:

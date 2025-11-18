@@ -1,0 +1,17 @@
+'use client';
+
+export const dynamic = 'force-dynamic';
+
+export default function NotFound() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
+        <p className="text-muted-foreground mb-8">The page you&apos;re looking for doesn&apos;t exist.</p>
+        <a href="/console" className="text-primary hover:underline">
+          Go back to dashboard
+        </a>
+      </div>
+    </div>
+  );
+}

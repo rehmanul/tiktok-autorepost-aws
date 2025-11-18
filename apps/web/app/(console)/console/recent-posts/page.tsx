@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/auth-provider';
 
+export const dynamic = 'force-dynamic';
+
 interface RecentPost {
   id: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'SUCCEEDED' | 'FAILED';

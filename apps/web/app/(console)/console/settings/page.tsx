@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchSystemConfig, type SystemConfig } from '@/lib/api/settings';
 
+export const dynamic = 'force-dynamic';
+
 export default function SettingsPage() {
   const [config, setConfig] = useState<SystemConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);

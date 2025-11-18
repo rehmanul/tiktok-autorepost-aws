@@ -14,6 +14,8 @@ import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useTenant } from '@/components/tenant/tenant-provider';
 import { useAuth } from '@/components/auth/auth-provider';
 
+export const dynamic = 'force-dynamic';
+
 export default function ConnectionsPage() {
   const { tenantId } = useTenant();
   const { user } = useAuth();

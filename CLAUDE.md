@@ -419,3 +419,5 @@ Complete documentation: [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIA
 ---
 
 **Note**: No Cursor rules or GitHub Copilot instructions files exist in this codebase.
+- STRICT RULES:  avoid simplification, demo data, fallback, fake data, basic, mock data, prototypes etc.
+Only  implement/create/prepare full production.

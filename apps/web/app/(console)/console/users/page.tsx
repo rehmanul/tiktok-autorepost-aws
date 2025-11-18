@@ -14,6 +14,8 @@ import { useAuth } from '@/components/auth/auth-provider';
 
 dayjs.extend(relativeTime);
 
+export const dynamic = 'force-dynamic';
+
 const STATUS_BADGES: Record<UserSummary['status'], string> = {
   ACTIVE: 'bg-emerald-500/10 text-emerald-600',
   INACTIVE: 'bg-slate-500/10 text-slate-600',

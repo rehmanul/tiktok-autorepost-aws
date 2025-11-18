@@ -12,6 +12,8 @@ import { useTenant } from '@/components/tenant/tenant-provider';
 
 dayjs.extend(relativeTime);
 
+export const dynamic = 'force-dynamic';
+
 export default function ActivityPage() {
   const { tenantId, tenant } = useTenant();
   const PAGE_SIZE = 50;

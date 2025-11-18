@@ -10,6 +10,8 @@ import { useTenant } from '@/components/tenant/tenant-provider';
 
 dayjs.extend(duration);
 
+export const dynamic = 'force-dynamic';
+
 const STATUS_LABELS: Record<JobStatus, string> = {
   PENDING: 'Pending',
   SCHEDULED: 'Scheduled',

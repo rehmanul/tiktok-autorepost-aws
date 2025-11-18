@@ -37,12 +37,14 @@ services:
 
   - type: web
     name: autorepost-web
-    env: static
+    env: node
     buildCommand: npm ci && npx turbo build --filter=@autorepost/web
-    staticPublishPath: ./apps/web/out
+    startCommand: cd apps/web && npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: NEXT_PUBLIC_SUPABASE_URL
         value: https://qjgplkbstelsbakaxwdc.supabase.co
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY

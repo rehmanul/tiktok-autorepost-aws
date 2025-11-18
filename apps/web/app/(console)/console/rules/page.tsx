@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge';
 
 dayjs.extend(relativeTime);
 
+export const dynamic = 'force-dynamic';
+
 const PLATFORM_LABELS: Record<SocialPlatform, string> = {
   TIKTOK: 'TikTok',
   INSTAGRAM: 'Instagram',

@@ -25,6 +25,8 @@ const DEFAULT_HEALTH: DashboardOverview['connectionHealth'] = [
   { platform: 'TWITTER', healthy: 0, warning: 0, critical: 0 }
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default function HomePage() {
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);

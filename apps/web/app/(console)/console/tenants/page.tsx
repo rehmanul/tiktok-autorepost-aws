@@ -12,6 +12,8 @@ import { fetchTenants, type TenantSummary } from '@/lib/api/tenants';
 
 dayjs.extend(relativeTime);
 
+export const dynamic = 'force-dynamic';
+
 export default function TenantsPage() {
   const PAGE_SIZE = 25;
   const [tenants, setTenants] = useState<TenantSummary[]>([]);
