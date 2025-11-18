@@ -3,7 +3,7 @@ services:
     name: autorepost-api
     env: node
     rootDir: .
-    buildCommand: NODE_ENV=development npm install && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
+    buildCommand: npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
     startCommand: npm run render:start
     envVars:
       - key: NODE_ENV
@@ -38,7 +38,7 @@ services:
   - type: web
     name: autorepost-web
     env: static
-    buildCommand: NODE_ENV=development npm install && npx turbo build --filter=@autorepost/web
+    buildCommand: npm ci && npx turbo build --filter=@autorepost/web
     staticPublishPath: ./apps/web/out
     envVars:
       - key: NODE_ENV
