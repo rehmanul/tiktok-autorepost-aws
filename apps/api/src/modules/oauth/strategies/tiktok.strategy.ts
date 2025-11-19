@@ -16,6 +16,15 @@ export class TikTokOAuthStrategy {
    * Validate TikTok cookies by attempting to fetch user profile
    */
   async validateCookies(username: string, cookies: string): Promise<TikTokCookieValidationResult> {
+    // First check if cookies have sessionid - if yes, allow with warning
+    const sessionId = this.extractSessionId(cookies);
+    if (!sessionId) {
+      return {
+        valid: false,
+        error: 'No sessionid found in cookies. Please ensure you are logged into TikTok and export cookies.'
+      };
+    }
+
     try {
       const client = new TikTokHttpClient({
         defaultCookies: cookies
@@ -37,12 +46,28 @@ export class TikTokOAuthStrategy {
         };
       }
 
+      // Fallback: If we have sessionid but validation failed, allow it anyway
+      // This handles cases where TikTok API is blocking validation but cookies are valid
+      this.logger.warn(`TikTok validation failed for @${username} but sessionid exists. Allowing connection with warning.`);
       return {
-        valid: false,
-        error: 'Could not fetch TikTok profile with provided cookies'
+        valid: true,
+        username: username.replace('@', ''),
+        userId: sessionId
       };
     } catch (error) {
       this.logger.error('TikTok cookie validation failed', error);
+
+      // Fallback: If we have sessionid, allow connection anyway
+      // This makes the connection more lenient when TikTok API is unreliable
+      if (sessionId) {
+        this.logger.warn(`Allowing TikTok connection for @${username} despite validation error. SessionId present.`);
+        return {
+          valid: true,
+          username: username.replace('@', ''),
+          userId: sessionId
+        };
+      }
+
       return {
         valid: false,
         error: error instanceof Error ? error.message : 'Cookie validation failed'
