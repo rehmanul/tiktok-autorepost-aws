@@ -36,7 +36,10 @@ export class TwitterOAuthStrategy {
         appSecret: this.config.consumerSecret
       });
 
-      const authLink = await client.generateAuthLink(this.config.callbackUrl, {
+      // Append state parameter to callback URL so Twitter passes it back
+      const callbackUrlWithState = `${this.config.callbackUrl}?state=${encodeURIComponent(state)}`;
+
+      const authLink = await client.generateAuthLink(callbackUrlWithState, {
         linkMode: 'authorize'
       });
 
