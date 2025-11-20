@@ -76,17 +76,23 @@ export class RulesService {
       return created;
     });
 
-    await this.jobs.scheduleJob({
-      tenantId: dto.tenantId,
-      userId: dto.userId,
-      kind: JobKind.TIKTOK_SYNC,
-      sourceConnectionId: dto.sourceConnectionId,
-      ruleId: rule.id,
-      payload: {
-        reason: 'rule-created',
-        triggerConnectionStatus: sourceConnection.status
-      }
-    });
+    // Try to schedule a job, but don't fail rule creation if queue is unavailable
+    try {
+      await this.jobs.scheduleJob({
+        tenantId: dto.tenantId,
+        userId: dto.userId,
+        kind: JobKind.TIKTOK_SYNC,
+        sourceConnectionId: dto.sourceConnectionId,
+        ruleId: rule.id,
+        payload: {
+          reason: 'rule-created',
+          triggerConnectionStatus: sourceConnection.status
+        }
+      });
+    } catch (error) {
+      // Log error but don't fail rule creation
+      console.error('Failed to schedule job for rule creation:', error.message);
+    }
 
     return this.toResponse(rule);
   }
