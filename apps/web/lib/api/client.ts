@@ -24,14 +24,14 @@ class ApiClient {
       ? window.localStorage.getItem('auth.accessToken')
       : null;
 
-    const headers: Record<string, string> = {
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...((options.headers || {}) as Record<string, string>),
     };
 
     // Add Authorization header if token exists
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
     }
 
     const response = await fetch(url, {
