@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ConnectionsService } from './connections.service';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { UpdateConnectionStatusDto } from './dto/update-connection-status.dto';
@@ -50,5 +50,10 @@ export class ConnectionsController {
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() dto: UpdateConnectionStatusDto) {
     return this.connections.updateStatus(id, dto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.connections.delete(id, user);
   }
 }

@@ -276,6 +276,28 @@ export class ConnectionsService {
     };
   }
 
+  async delete(connectionId: string, user: { id: string; tenantId: string; role: string }) {
+    // Find the connection and verify ownership
+    const connection = await this.prisma.connection.findFirst({
+      where: {
+        id: connectionId,
+        tenantId: user.tenantId,
+        ...(user.role !== 'ADMIN' ? { userId: user.id } : {})
+      }
+    });
+
+    if (!connection) {
+      throw new Error('Connection not found or access denied');
+    }
+
+    // Delete the connection
+    await this.prisma.connection.delete({
+      where: { id: connectionId }
+    });
+
+    return { success: true, message: 'Connection deleted successfully' };
+  }
+
   private sanitizeMetadata(metadata: Prisma.JsonValue | null) {
     if (!metadata || typeof metadata !== 'object') {
       return undefined;
