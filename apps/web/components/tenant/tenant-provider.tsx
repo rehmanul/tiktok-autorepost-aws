@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { fetchTenants, type TenantSummary } from '@/lib/api/tenants';
+import { useAuth } from '@/components/auth/auth-provider';
 
 type TenantContextValue = {
   tenantId: string | null;
@@ -17,6 +18,7 @@ const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 const STORAGE_KEY = 'autorepost.selectedTenant';
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [tenantId, setTenantIdState] = useState<string | null>(null);
   const [tenants, setTenants] = useState<TenantSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +99,17 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       setTenantIdState(null);
     }
   }, [tenantId, tenants]);
+
+  // Automatically set tenantId from logged-in user if not already set
+  useEffect(() => {
+    if (!hydrated || !user || tenantId) {
+      return;
+    }
+    // User is logged in and no tenant is selected, auto-select user's tenant
+    if (user.tenantId) {
+      setTenantIdState(user.tenantId);
+    }
+  }, [user, tenantId, hydrated]);
 
   const setTenantId = useCallback((nextTenantId: string | null) => {
     setTenantIdState(nextTenantId ?? null);
