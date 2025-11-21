@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleanup Duplicate Connections</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #4CAF50; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 0 0;
+        }
+        button:hover { background: #45a049; }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover { background: #d32f2f; }
+        .output {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196F3; }
+        .conn-card {
+            background: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+        .conn-card.duplicate {
+            border-left-color: #ff9800;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧹 Cleanup Duplicate Connections</h1>
+    <p>This will keep the newest connection for each platform and delete the rest</p>
+
+    <button onclick="loadAndShow()">📋 Load Connections</button>
+    <button class="danger" onclick="cleanupDuplicates()">🗑️ Delete All Duplicates</button>
+
+    <div id="output" class="output"></div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const EMAIL = 'justin@justinkratz.com';
+        const PASSWORD = 'Justin123456';
+        let token = null;
+        let user = null;
+        let connections = [];
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function login() {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: EMAIL, password: PASSWORD })
+                });
+
+                if (!response.ok) throw new Error('Login failed');
+
+                const data = await response.json();
+                token = data.accessToken;
+                user = data.user;
+                return true;
+            } catch (error) {
+                log(`❌ Login error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function loadAndShow() {
+            document.getElementById('output').innerHTML = '';
+            log('🔄 Loading connections...', 'info');
+
+            if (!await login()) return;
+
+            try {
+                const response = await fetch(
+                    `${API_URL}/connections?tenantId=${user.tenantId}&userId=${user.id}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+
+                if (!response.ok) throw new Error(`API failed: ${response.status}`);
+
+                connections = await response.json();
+                log(`✅ Found ${connections.length} total connections\n`, 'success');
+
+                // Group by platform
+                const grouped = connections.reduce((acc, conn) => {
+                    if (!acc[conn.platform]) acc[conn.platform] = [];
+                    acc[conn.platform].push(conn);
+                    return acc;
+                }, {});
+
+                // Display
+                Object.entries(grouped).forEach(([platform, conns]) => {
+                    conns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    log(`\n${platform}: ${conns.length} connection(s)`, conns.length > 1 ? 'warning' : 'success');
+
+                    conns.forEach((conn, index) => {
+                        const status = index === 0 ? '✅ KEEP' : '❌ DELETE';
+                        const created = new Date(conn.createdAt).toLocaleString();
+                        log(`  ${status} ${conn.accountHandle} - ${created}`, index === 0 ? 'success' : 'warning');
+                    });
+                });
+
+                // Summary
+                const duplicateCount = connections.length - Object.keys(grouped).length;
+                log(`\n📊 Summary:`, 'info');
+                log(`  Total connections: ${connections.length}`, 'info');
+                log(`  Unique platforms: ${Object.keys(grouped).length}`, 'info');
+                log(`  Duplicates to delete: ${duplicateCount}`, duplicateCount > 0 ? 'warning' : 'success');
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function cleanupDuplicates() {
+            if (!token || connections.length === 0) {
+                log('⚠️ Please load connections first!', 'warning');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete all duplicate connections?')) {
+                return;
+            }
+
+            log('\n🧹 Starting cleanup...', 'info');
+
+            // Group by platform
+            const grouped = connections.reduce((acc, conn) => {
+                if (!acc[conn.platform]) acc[conn.platform] = [];
+                acc[conn.platform].push(conn);
+                return acc;
+            }, {});
+
+            let deletedCount = 0;
+
+            for (const [platform, conns] of Object.entries(grouped)) {
+                if (conns.length > 1) {
+                    // Sort by creation date (newest first)
+                    conns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    // Delete all except the first (newest)
+                    for (let i = 1; i < conns.length; i++) {
+                        try {
+                            log(`Deleting ${platform} duplicate ${i}/${conns.length - 1}...`, 'info');
+
+                            const response = await fetch(`${API_URL}/connections/${conns[i].id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (response.ok) {
+                                log(`✅ Deleted ${platform} - ${conns[i].accountHandle}`, 'success');
+                                deletedCount++;
+                            } else {
+                                log(`❌ Failed to delete ${platform} - ${response.status}`, 'error');
+                            }
+                        } catch (error) {
+                            log(`❌ Error deleting ${platform}: ${error.message}`, 'error');
+                        }
+                    }
+                }
+            }
+
+            log(`\n🎉 Cleanup complete!`, 'success');
+            log(`  Deleted ${deletedCount} duplicate connection(s)`, 'success');
+            log(`\n💡 Refresh the dashboard to see the changes!`, 'info');
+        }
+    </script>
+</body>
+</html>

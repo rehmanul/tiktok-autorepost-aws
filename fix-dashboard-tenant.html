@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Dashboard Tenant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #4CAF50; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 0 0;
+        }
+        button:hover { background: #45a049; }
+        .output {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        .warning { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Dashboard Tenant</h1>
+    <p>This will fix the "Failed to load connections" error</p>
+
+    <button onclick="fixTenant()">🔧 Fix Tenant & Open Dashboard</button>
+    <button onclick="clearAndLogin()">🧹 Clear All & Re-Login</button>
+
+    <div id="output" class="output"></div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const WEB_URL = 'https://autorepost-web.onrender.com';
+        const EMAIL = 'justin@justinkratz.com';
+        const PASSWORD = 'Justin123456';
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function fixTenant() {
+            document.getElementById('output').innerHTML = '';
+            log('🔄 Fixing tenant configuration...', 'info');
+
+            try {
+                // Step 1: Login to get fresh session
+                log('Step 1: Logging in...', 'info');
+                const loginResponse = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: EMAIL, password: PASSWORD })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.statusText}`);
+                }
+
+                const data = await loginResponse.json();
+                log('✅ Login successful', 'success');
+                log(`   User: ${data.user.email}`, 'info');
+                log(`   Tenant ID: ${data.user.tenantId}`, 'info');
+
+                // Step 2: Store credentials
+                log('\nStep 2: Storing credentials...', 'info');
+                localStorage.setItem('auth.accessToken', data.accessToken);
+                localStorage.setItem('auth.refreshToken', data.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(data.user));
+                log('✅ Credentials stored', 'success');
+
+                // Step 3: Set tenant ID (this is the fix!)
+                log('\nStep 3: Setting tenant ID...', 'info');
+                localStorage.setItem('autorepost.selectedTenant', data.user.tenantId);
+                log(`✅ Tenant set to: ${data.user.tenantId}`, 'success');
+
+                // Step 4: Verify connections work
+                log('\nStep 4: Testing connections API...', 'info');
+                const connectionsResponse = await fetch(
+                    `${API_URL}/connections?tenantId=${data.user.tenantId}&userId=${data.user.id}`,
+                    { headers: { 'Authorization': `Bearer ${data.accessToken}` } }
+                );
+
+                if (!connectionsResponse.ok) {
+                    throw new Error(`Connections API failed: ${connectionsResponse.status}`);
+                }
+
+                const connections = await connectionsResponse.json();
+                log(`✅ Found ${connections.length} connections`, 'success');
+
+                const tiktok = connections.filter(c => c.platform === 'TIKTOK' && c.status === 'ACTIVE');
+                if (tiktok.length > 0) {
+                    log(`✅ TikTok connections: ${tiktok.length}`, 'success');
+                }
+
+                // Step 5: Open dashboard
+                log('\n🎉 SUCCESS! Opening dashboard...', 'success');
+                log('   Dashboard will open in 2 seconds...', 'info');
+                log('   You should now see all your connections!', 'success');
+
+                setTimeout(() => {
+                    window.open(`${WEB_URL}/console/connections`, '_blank');
+                }, 2000);
+
+            } catch (error) {
+                log(`\n❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAndLogin() {
+            document.getElementById('output').innerHTML = '';
+            log('🧹 Clearing localStorage and re-logging in...', 'info');
+
+            // Clear everything
+            localStorage.clear();
+            log('✅ localStorage cleared', 'success');
+
+            // Now run the fix
+            await fixTenant();
+        }
+    </script>
+</body>
+</html>

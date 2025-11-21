@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Connection Helper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.info {
+            background: #2196F3;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>🚀 OAuth Connection Helper</h1>
+    <p>Email: <strong>justin@justinkratz.com</strong></p>
+
+    <!-- Login Section -->
+    <div class="section">
+        <h2>Step 1: Login</h2>
+        <button onclick="login()">🔐 Login Now</button>
+        <div id="loginOutput" class="output"></div>
+    </div>
+
+    <!-- YouTube OAuth -->
+    <div class="section">
+        <h2>Step 2: Connect YouTube</h2>
+        <p>Click to start YouTube OAuth flow:</p>
+        <button onclick="connectYouTube()">▶️ Connect YouTube</button>
+        <div id="youtubeOutput" class="output"></div>
+    </div>
+
+    <!-- Instagram OAuth -->
+    <div class="section">
+        <h2>Step 3: Connect Instagram</h2>
+        <p>Click to start Instagram OAuth flow:</p>
+        <button onclick="connectInstagram()">📸 Connect Instagram</button>
+        <div id="instagramOutput" class="output"></div>
+    </div>
+
+    <!-- Twitter OAuth -->
+    <div class="section">
+        <h2>Step 4: Connect Twitter</h2>
+        <p>Click to start Twitter OAuth flow:</p>
+        <button onclick="connectTwitter()">🐦 Connect Twitter</button>
+        <div id="twitterOutput" class="output"></div>
+    </div>
+
+    <!-- TikTok Connection -->
+    <div class="section">
+        <h2>Step 5: Connect TikTok</h2>
+        <p><strong>Instructions to get cookies:</strong></p>
+        <ol>
+            <li>Go to <a href="https://www.tiktok.com" target="_blank">tiktok.com</a> and login</li>
+            <li>Install <a href="https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank">Cookie Editor</a></li>
+            <li>Click extension → Export → Copy JSON</li>
+            <li>Paste below and click Connect</li>
+        </ol>
+
+        <p><strong>⚡ Quick Mode:</strong> Only need 3 essential cookies:</p>
+        <ul>
+            <li>✅ <code>sessionid</code> - Most important!</li>
+            <li>✅ <code>sid_tt</code> - Session token</li>
+            <li>✅ <code>uid_tt</code> - User ID token</li>
+        </ul>
+        <p style="color: #2196F3;">You can paste the full JSON - this tool will extract only what's needed!</p>
+
+        <label>TikTok Handle:</label>
+        <input type="text" id="tiktokHandle" placeholder="@yourhandle" value="@rehmanuls">
+
+        <label>TikTok Cookies (Full JSON or just essential cookies):</label>
+        <textarea id="tiktokCookies" placeholder='Full Cookie Editor JSON OR just: sessionid=YOUR_SESSION_ID; sid_tt=YOUR_SID; uid_tt=YOUR_UID'></textarea>
+
+        <button onclick="connectTikTok()">🎵 Connect TikTok</button>
+        <button onclick="extractCookiesHelp()" class="info">💡 Help Extract Cookies</button>
+        <div id="tiktokOutput" class="output"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const EMAIL = 'justin@justinkratz.com';
+        const PASSWORD = 'Justin123456';
+        let sessionData = null;
+
+        // Logging helper
+        function log(elementId, message, type = 'info') {
+            const output = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Login
+        async function login() {
+            const output = 'loginOutput';
+            log(output, '🔄 Logging in...');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: EMAIL, password: PASSWORD })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                sessionData = await response.json();
+
+                // Store in localStorage
+                localStorage.setItem('auth.accessToken', sessionData.accessToken);
+                localStorage.setItem('auth.refreshToken', sessionData.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(sessionData.user));
+
+                log(output, '✅ Login successful!', 'success');
+                log(output, `User ID: ${sessionData.user.id}`, 'success');
+                log(output, `Tenant ID: ${sessionData.user.tenantId}`, 'success');
+                log(output, `Email: ${sessionData.user.email}`, 'success');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Get auth header
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth.accessToken');
+            if (!token) {
+                throw new Error('Not logged in! Click Login first.');
+            }
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        // Get user data
+        function getUserData() {
+            const user = localStorage.getItem('auth.user');
+            if (!user) {
+                throw new Error('Not logged in! Click Login first.');
+            }
+            return JSON.parse(user);
+        }
+
+        // Connect YouTube
+        async function connectYouTube() {
+            const output = 'youtubeOutput';
+            log(output, '🔄 Starting YouTube OAuth...');
+
+            try {
+                const user = getUserData();
+                const response = await fetch(
+                    `${API_URL}/oauth/youtube/start?tenantId=${user.tenantId}&userId=${user.id}`,
+                    { headers: getAuthHeaders() }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log(output, '✅ Opening YouTube authorization...', 'success');
+                log(output, '📋 You will be redirected to Google to authorize.', 'info');
+
+                // Open OAuth URL
+                window.open(data.authUrl, '_blank');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Connect Instagram
+        async function connectInstagram() {
+            const output = 'instagramOutput';
+            log(output, '🔄 Starting Instagram OAuth...');
+
+            try {
+                const user = getUserData();
+                const response = await fetch(
+                    `${API_URL}/oauth/instagram/start?tenantId=${user.tenantId}&userId=${user.id}`,
+                    { headers: getAuthHeaders() }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log(output, '✅ Opening Instagram authorization...', 'success');
+                log(output, '📋 You will be redirected to Facebook to authorize.', 'info');
+
+                // Open OAuth URL
+                window.open(data.authUrl, '_blank');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Connect Twitter
+        async function connectTwitter() {
+            const output = 'twitterOutput';
+            log(output, '🔄 Starting Twitter OAuth...');
+
+            try {
+                const user = getUserData();
+                const response = await fetch(
+                    `${API_URL}/oauth/twitter/start?tenantId=${user.tenantId}&userId=${user.id}`,
+                    { headers: getAuthHeaders() }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log(output, '✅ Opening Twitter authorization...', 'success');
+                log(output, '📋 You will be redirected to Twitter/X to authorize.', 'info');
+
+                // Open OAuth URL
+                window.open(data.authUrl, '_blank');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Help extract cookies manually
+        function extractCookiesHelp() {
+            const output = 'tiktokOutput';
+            const cookiesInput = document.getElementById('tiktokCookies').value.trim();
+
+            if (!cookiesInput) {
+                log(output, '⚠️ Please paste your cookies first!', 'error');
+                return;
+            }
+
+            try {
+                const cookieString = extractEssentialCookies(cookiesInput);
+                log(output, '✅ Extracted essential cookies:', 'success');
+                log(output, cookieString, 'info');
+                log(output, '💡 You can now click "Connect TikTok" to proceed', 'info');
+
+                // Replace textarea content with extracted cookies
+                document.getElementById('tiktokCookies').value = cookieString;
+            } catch (error) {
+                log(output, `❌ Error extracting cookies: ${error.message}`, 'error');
+                log(output, '💡 Try pasting the full Cookie Editor JSON export', 'info');
+            }
+        }
+
+        // Extract essential TikTok cookies from JSON
+        function extractEssentialCookies(cookiesInput) {
+            try {
+                // Parse JSON (handle both array and string)
+                let cookieArray;
+                if (cookiesInput.trim().startsWith('[')) {
+                    cookieArray = JSON.parse(cookiesInput);
+                } else {
+                    // Already a cookie string, return as-is
+                    return cookiesInput;
+                }
+
+                // Extract only essential cookies
+                const essential = ['sessionid', 'sid_tt', 'uid_tt', 'sessionid_ss', 'sid_guard'];
+                const filtered = cookieArray.filter(c => essential.includes(c.name));
+
+                if (filtered.length === 0) {
+                    throw new Error('No essential cookies found. Make sure you are logged into TikTok.');
+                }
+
+                // Convert to cookie string format
+                return filtered.map(c => `${c.name}=${c.value}`).join('; ');
+            } catch (error) {
+                // If JSON parsing fails, try to extract from cookie string format
+                if (cookiesInput.includes('sessionid=')) {
+                    return cookiesInput; // Already in cookie string format
+                }
+                throw new Error(`Invalid cookie format: ${error.message}`);
+            }
+        }
+
+        // Connect TikTok
+        async function connectTikTok() {
+            const output = 'tiktokOutput';
+            log(output, '🔄 Connecting TikTok...');
+
+            try {
+                const user = getUserData();
+                const handle = document.getElementById('tiktokHandle').value.trim();
+                const cookiesInput = document.getElementById('tiktokCookies').value.trim();
+
+                if (!handle) {
+                    throw new Error('Please enter your TikTok handle');
+                }
+                if (!cookiesInput) {
+                    throw new Error('Please paste your TikTok cookies');
+                }
+
+                log(output, '📋 Extracting essential cookies...', 'info');
+
+                // Extract only essential cookies with robust parsing
+                let cookieString;
+                try {
+                    cookieString = extractEssentialCookies(cookiesInput);
+                    log(output, '✅ Extracted essential cookies', 'success');
+                } catch (parseError) {
+                    log(output, `⚠️ Parse warning: ${parseError.message}`, 'error');
+                    // Fallback: try to send as-is
+                    cookieString = cookiesInput;
+                }
+
+                // Send as JSON string (API expects string, not object)
+                const cookiesPayload = cookiesInput.trim().startsWith('[') ? cookiesInput : JSON.stringify(cookieString);
+
+                const response = await fetch(`${API_URL}/oauth/tiktok/connect`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenantId: user.tenantId,
+                        userId: user.id,
+                        accountHandle: handle,
+                        cookies: cookiesPayload
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || response.statusText);
+                }
+
+                const data = await response.json();
+                log(output, '✅ TikTok connected successfully!', 'success');
+                log(output, `Connection ID: ${data.connectionId}`, 'success');
+                log(output, '🎉 You can now create autopost rules!', 'success');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-login on page load if credentials are available
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('auth.accessToken');
+            if (!token) {
+                document.getElementById('loginOutput').innerHTML =
+                    '<span class="info">Click "Login Now" to start</span>';
+            } else {
+                document.getElementById('loginOutput').innerHTML =
+                    '<span class="success">✅ Already logged in! You can connect platforms below.</span>';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -61,7 +61,8 @@ export default function ConnectionsPage() {
     if (tenantId && user) {
       loadConnections();
     }
-  }, [tenantId, user, loadConnections]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, user]);
 
   const handleConnect = (platform: SocialPlatform) => {
     setSelectedPlatform(platform);

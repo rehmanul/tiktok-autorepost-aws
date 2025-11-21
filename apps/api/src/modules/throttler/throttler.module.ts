@@ -12,17 +12,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           {
             name: 'short',
             ttl: 60000,
-            limit: 10
+            limit: 100
           },
           {
             name: 'medium',
             ttl: 600000,
-            limit: 100
+            limit: 500
           },
           {
             name: 'long',
             ttl: 3600000,
-            limit: 1000
+            limit: 2000
           }
         ]
       }),

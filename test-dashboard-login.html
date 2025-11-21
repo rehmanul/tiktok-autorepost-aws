@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 0 0;
+        }
+        button:hover { background: #45a049; }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        .connection-card {
+            background: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+        .connection-card.duplicate {
+            border-left-color: #ff9800;
+            opacity: 0.7;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-active { background: #4CAF50; }
+        .status-duplicate { background: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Dashboard Login & Connection Test</h1>
+    <p>Test dashboard login and view your real connections</p>
+
+    <!-- Login Section -->
+    <div class="section">
+        <h2>Step 1: Login</h2>
+        <input type="email" id="email" placeholder="Email" value="justin@justinkratz.com">
+        <input type="password" id="password" placeholder="Password" value="Justin123456">
+        <button onclick="testLogin()">🔐 Test Login</button>
+        <button onclick="testDashboardLogin()">🌐 Open Dashboard & Auto-Login</button>
+        <div id="loginOutput" class="output"></div>
+    </div>
+
+    <!-- Connections Section -->
+    <div class="section">
+        <h2>Step 2: View Your Connections</h2>
+        <button onclick="loadConnections()" id="loadBtn" disabled>📋 Load Connections</button>
+        <button onclick="cleanupDuplicates()" id="cleanupBtn" disabled>🧹 Clean Up Duplicates</button>
+        <div id="connectionsOutput" class="output"></div>
+        <div id="connectionsList"></div>
+    </div>
+
+    <!-- Dashboard Status -->
+    <div class="section">
+        <h2>Step 3: Check Dashboard Status</h2>
+        <button onclick="checkDashboard()">🌐 Check Dashboard</button>
+        <div id="dashboardOutput" class="output"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const WEB_URL = 'https://autorepost-web.onrender.com';
+        let token = null;
+        let user = null;
+        let connections = [];
+
+        function log(elementId, message, type = 'info') {
+            const output = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            log('loginOutput', '🔄 Testing login...');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                token = data.accessToken;
+                user = data.user;
+
+                log('loginOutput', '✅ Login successful!', 'success');
+                log('loginOutput', `User ID: ${user.id}`, 'success');
+                log('loginOutput', `Tenant ID: ${user.tenantId}`, 'success');
+                log('loginOutput', `Email: ${user.email}`, 'success');
+                log('loginOutput', `Role: ${user.role}`, 'success');
+                log('loginOutput', '✅ Token received and stored', 'success');
+
+                // Enable buttons
+                document.getElementById('loadBtn').disabled = false;
+                document.getElementById('cleanupBtn').disabled = false;
+
+            } catch (error) {
+                log('loginOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDashboardLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            log('loginOutput', '🔄 Logging in via API first...');
+
+            try {
+                // Login via API
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Store in localStorage for dashboard
+                localStorage.setItem('auth.accessToken', data.accessToken);
+                localStorage.setItem('auth.refreshToken', data.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(data.user));
+
+                log('loginOutput', '✅ Credentials stored in localStorage', 'success');
+                log('loginOutput', '🌐 Opening dashboard...', 'info');
+
+                // Open dashboard
+                window.open(`${WEB_URL}/console/connections`, '_blank');
+
+                log('loginOutput', '✅ Dashboard opened! You should be logged in automatically.', 'success');
+                log('loginOutput', '📋 Check the dashboard tab - you should see your connections!', 'success');
+
+            } catch (error) {
+                log('loginOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadConnections() {
+            if (!token || !user) {
+                log('connectionsOutput', '❌ Please login first!', 'error');
+                return;
+            }
+
+            log('connectionsOutput', '🔄 Loading connections...');
+
+            try {
+                const response = await fetch(
+                    `${API_URL}/connections?tenantId=${user.tenantId}&userId=${user.id}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed: ${response.statusText}`);
+                }
+
+                connections = await response.json();
+                log('connectionsOutput', `✅ Found ${connections.length} connections`, 'success');
+
+                displayConnections();
+
+            } catch (error) {
+                log('connectionsOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayConnections() {
+            const container = document.getElementById('connectionsList');
+            container.innerHTML = '';
+
+            if (connections.length === 0) {
+                container.innerHTML = '<p style="color:#888">No connections found</p>';
+                return;
+            }
+
+            // Group by platform
+            const grouped = connections.reduce((acc, conn) => {
+                if (!acc[conn.platform]) acc[conn.platform] = [];
+                acc[conn.platform].push(conn);
+                return acc;
+            }, {});
+
+            // Display summary
+            let summary = '<div style="background:#333;padding:15px;margin:10px 0;border-radius:4px;">';
+            summary += `<h3 style="color:#4CAF50">📊 Summary</h3>`;
+            summary += `<p>Total Connections: <strong>${connections.length}</strong></p>`;
+            summary += '<ul>';
+            Object.entries(grouped).forEach(([platform, conns]) => {
+                const icon = { 'YOUTUBE': '▶️', 'TWITTER': '🐦', 'INSTAGRAM': '📸', 'TIKTOK': '🎵' }[platform] || '🔗';
+                summary += `<li>${icon} <strong>${platform}</strong>: ${conns.length} connection(s)`;
+                if (conns.length > 1) summary += ' <span class="status-badge status-duplicate">DUPLICATES</span>';
+                summary += '</li>';
+            });
+            summary += '</ul></div>';
+            container.innerHTML = summary;
+
+            // Display each connection
+            Object.entries(grouped).forEach(([platform, conns]) => {
+                conns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                conns.forEach((conn, index) => {
+                    const isDuplicate = index > 0;
+                    const card = document.createElement('div');
+                    card.className = 'connection-card' + (isDuplicate ? ' duplicate' : '');
+
+                    const icon = { 'YOUTUBE': '▶️', 'TWITTER': '🐦', 'INSTAGRAM': '📸', 'TIKTOK': '🎵' }[platform] || '🔗';
+
+                    card.innerHTML = `
+                        <h3>${icon} ${platform} <span class="status-badge status-active">${conn.status}</span>
+                        ${isDuplicate ? '<span class="status-badge status-duplicate">DUPLICATE</span>' : ''}</h3>
+                        <p><strong>Account:</strong> ${conn.accountDisplayName} (@${conn.accountHandle})</p>
+                        <p style="color:#888;font-size:12px">Connected: ${new Date(conn.createdAt).toLocaleString()}</p>
+                        <p style="color:#888;font-size:12px">ID: ${conn.id}</p>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        async function cleanupDuplicates() {
+            if (!token || !user) {
+                log('connectionsOutput', '❌ Please login first!', 'error');
+                return;
+            }
+
+            if (connections.length === 0) {
+                log('connectionsOutput', '⚠️ Load connections first!', 'error');
+                return;
+            }
+
+            log('connectionsOutput', '🧹 Cleaning up duplicates...');
+
+            const grouped = connections.reduce((acc, conn) => {
+                if (!acc[conn.platform]) acc[conn.platform] = [];
+                acc[conn.platform].push(conn);
+                return acc;
+            }, {});
+
+            let deletedCount = 0;
+
+            for (const [platform, conns] of Object.entries(grouped)) {
+                if (conns.length > 1) {
+                    conns.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    for (let i = 1; i < conns.length; i++) {
+                        try {
+                            const response = await fetch(`${API_URL}/connections/${conns[i].id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (response.ok) {
+                                log('connectionsOutput', `✅ Deleted duplicate ${platform} connection`, 'success');
+                                deletedCount++;
+                            }
+                        } catch (error) {
+                            log('connectionsOutput', `❌ Error deleting ${platform}: ${error.message}`, 'error');
+                        }
+                    }
+                }
+            }
+
+            log('connectionsOutput', `🎉 Cleanup complete! Deleted ${deletedCount} duplicate(s)`, 'success');
+            await loadConnections();
+        }
+
+        async function checkDashboard() {
+            log('dashboardOutput', '🔄 Checking dashboard status...');
+
+            // Check if dashboard is accessible
+            try {
+                const response = await fetch(WEB_URL);
+                if (response.ok) {
+                    log('dashboardOutput', '✅ Dashboard is online and accessible', 'success');
+                    log('dashboardOutput', `URL: ${WEB_URL}`, 'info');
+                } else {
+                    log('dashboardOutput', `⚠️ Dashboard returned: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log('dashboardOutput', `❌ Dashboard not accessible: ${error.message}`, 'error');
+            }
+
+            // Check localStorage
+            const storedToken = localStorage.getItem('auth.accessToken');
+            const storedUser = localStorage.getItem('auth.user');
+
+            if (storedToken && storedUser) {
+                log('dashboardOutput', '✅ Auth credentials found in localStorage', 'success');
+                log('dashboardOutput', `Token: ${storedToken.substring(0, 20)}...`, 'info');
+
+                try {
+                    const user = JSON.parse(storedUser);
+                    log('dashboardOutput', `User: ${user.email} (${user.role})`, 'info');
+                } catch (e) {
+                    log('dashboardOutput', '⚠️ Stored user data is invalid', 'error');
+                }
+            } else {
+                log('dashboardOutput', '❌ No auth credentials in localStorage', 'error');
+                log('dashboardOutput', '💡 Click "Open Dashboard & Auto-Login" to fix this', 'info');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            checkDashboard();
+        });
+    </script>
+</body>
+</html>

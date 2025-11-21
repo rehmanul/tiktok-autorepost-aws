@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Diagnostic - Check Now</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 0 0;
+        }
+        button:hover { background: #45a049; }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Dashboard Diagnostic - Check Now</h1>
+    <p>This will check if the dashboard fix is working</p>
+
+    <div class="section">
+        <h2>Quick Test</h2>
+        <button onclick="runFullTest()">🚀 Run Full Test</button>
+        <div id="output" class="output"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const EMAIL = 'justin@justinkratz.com';
+        const PASSWORD = 'Justin123456';
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function runFullTest() {
+            document.getElementById('output').innerHTML = '';
+            log('🔄 Starting diagnostic test...', 'info');
+
+            try {
+                // Step 1: Login
+                log('\n📍 STEP 1: Login', 'info');
+                const loginResponse = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: EMAIL, password: PASSWORD })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status} ${loginResponse.statusText}`);
+                }
+
+                const loginData = await loginResponse.json();
+                log('✅ Login successful', 'success');
+                log(`   User ID: ${loginData.user.id}`, 'info');
+                log(`   Tenant ID: ${loginData.user.tenantId}`, 'info');
+
+                // Step 2: Store in localStorage
+                log('\n📍 STEP 2: Store credentials in localStorage', 'info');
+                localStorage.setItem('auth.accessToken', loginData.accessToken);
+                localStorage.setItem('auth.refreshToken', loginData.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(loginData.user));
+                log('✅ Credentials stored', 'success');
+
+                // Step 3: Load connections
+                log('\n📍 STEP 3: Load connections from API', 'info');
+                const connectionsUrl = `${API_URL}/connections?tenantId=${loginData.user.tenantId}&userId=${loginData.user.id}`;
+                log(`   URL: ${connectionsUrl}`, 'info');
+
+                const connectionsResponse = await fetch(connectionsUrl, {
+                    headers: { 'Authorization': `Bearer ${loginData.accessToken}` }
+                });
+
+                log(`   Response status: ${connectionsResponse.status}`, connectionsResponse.ok ? 'success' : 'error');
+
+                if (!connectionsResponse.ok) {
+                    const errorText = await connectionsResponse.text();
+                    log(`❌ Connections API failed: ${errorText}`, 'error');
+                    throw new Error(`Connections API failed: ${connectionsResponse.status}`);
+                }
+
+                const connections = await connectionsResponse.json();
+                log(`✅ Found ${connections.length} connections`, 'success');
+
+                // Step 4: Analyze connections
+                log('\n📍 STEP 4: Analyze connections', 'info');
+                const grouped = connections.reduce((acc, conn) => {
+                    if (!acc[conn.platform]) acc[conn.platform] = [];
+                    acc[conn.platform].push(conn);
+                    return acc;
+                }, {});
+
+                Object.entries(grouped).forEach(([platform, conns]) => {
+                    const activeCount = conns.filter(c => c.status === 'ACTIVE').length;
+                    log(`   ${platform}: ${conns.length} total, ${activeCount} ACTIVE`, 'info');
+                });
+
+                const tiktok = connections.filter(c => c.platform === 'TIKTOK' && c.status === 'ACTIVE');
+                if (tiktok.length > 0) {
+                    log(`\n✅ TikTok connections found: ${tiktok.length}`, 'success');
+                    tiktok.forEach(conn => {
+                        log(`   - ${conn.accountHandle} (${conn.id})`, 'success');
+                    });
+                } else {
+                    log(`\n❌ NO ACTIVE TIKTOK CONNECTIONS!`, 'error');
+                }
+
+                // Step 5: Check localStorage tenant selection
+                log('\n📍 STEP 5: Check localStorage tenant selection', 'info');
+                const storedTenant = localStorage.getItem('autorepost.selectedTenant');
+                if (storedTenant) {
+                    log(`✅ Tenant is selected: ${storedTenant}`, 'success');
+                    if (storedTenant === loginData.user.tenantId) {
+                        log(`✅ Matches user's tenantId - CORRECT!`, 'success');
+                    } else {
+                        log(`⚠️ Does NOT match user's tenantId!`, 'warning');
+                        log(`   Stored: ${storedTenant}`, 'warning');
+                        log(`   User's: ${loginData.user.tenantId}`, 'warning');
+                    }
+                } else {
+                    log(`⚠️ No tenant selected in localStorage`, 'warning');
+                    log(`   This is the issue! The fix should auto-select tenantId on login.`, 'warning');
+                    log(`   Setting it now...`, 'info');
+                    localStorage.setItem('autorepost.selectedTenant', loginData.user.tenantId);
+                    log(`✅ Tenant set to: ${loginData.user.tenantId}`, 'success');
+                }
+
+                // Step 6: Final verdict
+                log('\n📍 FINAL VERDICT', 'success');
+                if (connections.length > 0 && tiktok.length > 0) {
+                    log('✅ Everything is working!', 'success');
+                    log('   - API returns connections ✅', 'success');
+                    log('   - TikTok connections found ✅', 'success');
+                    log('   - localStorage configured ✅', 'success');
+                    log('\n🎯 NOW: Refresh the dashboard and it should work!', 'success');
+                } else {
+                    log('❌ Issues found:', 'error');
+                    if (connections.length === 0) {
+                        log('   - No connections returned from API', 'error');
+                    }
+                    if (tiktok.length === 0) {
+                        log('   - No active TikTok connections', 'error');
+                    }
+                }
+
+            } catch (error) {
+                log(`\n❌ ERROR: ${error.message}`, 'error');
+                log(`   Stack: ${error.stack}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

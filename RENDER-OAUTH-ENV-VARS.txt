@@ -1,0 +1,101 @@
+=================================================================
+RENDER.COM ENVIRONMENT VARIABLES - COPY AND PASTE
+=================================================================
+
+Go to: https://dashboard.render.com/
+Find service: autorepost-api
+Click: Environment (in left sidebar)
+Add these variables one by one:
+
+=================================================================
+TWITTER/X OAUTH (Get from: https://developer.twitter.com)
+=================================================================
+
+Variable Name: TWITTER_CONSUMER_KEY
+Value: [PASTE YOUR TWITTER API KEY HERE]
+
+Variable Name: TWITTER_CONSUMER_SECRET
+Value: [PASTE YOUR TWITTER API SECRET HERE]
+
+Variable Name: TWITTER_CALLBACK_URL
+Value: https://autorepost-api-l4oy.onrender.com/api/oauth/twitter/callback
+
+=================================================================
+YOUTUBE OAUTH (Get from: https://console.cloud.google.com)
+=================================================================
+
+Variable Name: YOUTUBE_CLIENT_ID
+Value: [PASTE YOUR GOOGLE OAUTH CLIENT ID HERE]
+
+Variable Name: YOUTUBE_CLIENT_SECRET
+Value: [PASTE YOUR GOOGLE OAUTH CLIENT SECRET HERE]
+
+Variable Name: YOUTUBE_CALLBACK_URL
+Value: https://autorepost-api-l4oy.onrender.com/api/oauth/youtube/callback
+
+=================================================================
+INSTAGRAM OAUTH (Get from: https://developers.facebook.com)
+=================================================================
+
+Variable Name: INSTAGRAM_CLIENT_ID
+Value: [PASTE YOUR INSTAGRAM/FACEBOOK APP ID HERE]
+
+Variable Name: INSTAGRAM_CLIENT_SECRET
+Value: [PASTE YOUR INSTAGRAM/FACEBOOK APP SECRET HERE]
+
+Variable Name: INSTAGRAM_CALLBACK_URL
+Value: https://autorepost-api-l4oy.onrender.com/api/oauth/instagram/callback
+
+=================================================================
+WEB APP URL (Already should be set, but verify)
+=================================================================
+
+Variable Name: WEB_APP_URL
+Value: https://autorepost-web.onrender.com
+
+Variable Name: CORS_ORIGIN
+Value: https://autorepost-web.onrender.com
+
+=================================================================
+STEPS TO ADD:
+=================================================================
+
+1. Go to https://dashboard.render.com/
+2. Click on "autorepost-api" service
+3. Click "Environment" in left sidebar
+4. For EACH variable above:
+   a. Click "Add Environment Variable"
+   b. Copy the "Variable Name" exactly
+   c. Paste your credential value
+   d. Click outside the box to save
+5. After ALL variables are added, click "Save Changes" button at bottom
+6. Render will redeploy automatically (takes ~5-7 minutes)
+7. Test connections at: https://autorepost-web.onrender.com/console/connections
+
+=================================================================
+WHERE TO GET CREDENTIALS:
+=================================================================
+
+TWITTER:
+1. Go to https://developer.twitter.com/en/portal/dashboard
+2. Click your app
+3. Go to "Keys and tokens" tab
+4. Copy "API Key" → TWITTER_CONSUMER_KEY
+5. Copy "API Secret" → TWITTER_CONSUMER_SECRET
+
+YOUTUBE:
+1. Go to https://console.cloud.google.com/
+2. Select your project
+3. Go to "APIs & Services" → "Credentials"
+4. Find your OAuth 2.0 Client ID
+5. Copy "Client ID" → YOUTUBE_CLIENT_ID
+6. Copy "Client secret" → YOUTUBE_CLIENT_SECRET
+
+INSTAGRAM:
+1. Go to https://developers.facebook.com/apps/
+2. Click your app
+3. Go to Settings → Basic
+4. Copy "App ID" → INSTAGRAM_CLIENT_ID
+5. Copy "App Secret" → INSTAGRAM_CLIENT_SECRET
+
+=================================================================

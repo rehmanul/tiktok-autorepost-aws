@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Simple Connect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; }
+        code {
+            background: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #4CAF50;
+            font-family: monospace;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        .step {
+            background: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+        ol { line-height: 2; }
+        .cookie-example {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 TikTok Simple Connect</h1>
+    <p>Connect TikTok using only 3 essential cookies - NO JSON parsing needed!</p>
+
+    <!-- Instructions -->
+    <div class="section">
+        <h2>📋 How to Get Your Cookies</h2>
+
+        <div class="step">
+            <strong>Step 1:</strong> Open TikTok in a new tab<br>
+            → <a href="https://www.tiktok.com" target="_blank" style="color: #4CAF50;">https://www.tiktok.com</a>
+        </div>
+
+        <div class="step">
+            <strong>Step 2:</strong> Make sure you're logged in as @rehmanuls
+        </div>
+
+        <div class="step">
+            <strong>Step 3:</strong> Open Developer Tools<br>
+            → Press <code>F12</code> or Right-click → Inspect
+        </div>
+
+        <div class="step">
+            <strong>Step 4:</strong> Go to <strong>Application</strong> tab (or Storage tab in Firefox)
+        </div>
+
+        <div class="step">
+            <strong>Step 5:</strong> In the left sidebar, expand <strong>Cookies</strong> → Click <strong>https://www.tiktok.com</strong>
+        </div>
+
+        <div class="step">
+            <strong>Step 6:</strong> Find and copy these 3 cookies:<br><br>
+            <div class="cookie-example">
+                1. Find <code>sessionid</code> → Double-click the Value column → Copy<br>
+                2. Find <code>sid_tt</code> → Double-click the Value column → Copy<br>
+                3. Find <code>uid_tt</code> → Double-click the Value column → Copy
+            </div>
+        </div>
+
+        <div class="step">
+            <strong>Step 7:</strong> Paste each value below and click Connect!
+        </div>
+    </div>
+
+    <!-- Connection Form -->
+    <div class="section">
+        <h2>🔐 Login First</h2>
+        <button onclick="login()">🔐 Login Now</button>
+        <div id="loginOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>🎵 Connect TikTok</h2>
+
+        <label><strong>Your TikTok Handle:</strong></label>
+        <input type="text" id="handle" placeholder="@rehmanuls" value="@rehmanuls">
+
+        <label><strong>1️⃣ sessionid value:</strong></label>
+        <input type="text" id="sessionid" placeholder="Paste sessionid value here (e.g., e85eed433bfc35720a51d65c4fd7a174)">
+
+        <label><strong>2️⃣ sid_tt value:</strong></label>
+        <input type="text" id="sid_tt" placeholder="Paste sid_tt value here">
+
+        <label><strong>3️⃣ uid_tt value:</strong></label>
+        <input type="text" id="uid_tt" placeholder="Paste uid_tt value here">
+
+        <button onclick="connectTikTok()">🚀 Connect TikTok</button>
+        <div id="output" class="output"></div>
+    </div>
+
+    <!-- Advanced Option -->
+    <div class="section">
+        <h2>💡 Alternative: Paste All at Once</h2>
+        <p>If you prefer, paste all cookies in this format:</p>
+        <div class="cookie-example">
+            sessionid=YOUR_VALUE; sid_tt=YOUR_VALUE; uid_tt=YOUR_VALUE
+        </div>
+
+        <label><strong>Cookie String:</strong></label>
+        <input type="text" id="cookieString" placeholder="sessionid=...; sid_tt=...; uid_tt=...">
+
+        <button onclick="connectWithString()">🚀 Connect with String</button>
+    </div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const EMAIL = 'justin@justinkratz.com';
+        const PASSWORD = 'Justin123456';
+        let sessionData = null;
+
+        function log(elementId, message, type = 'info') {
+            const output = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function login() {
+            const output = 'loginOutput';
+            log(output, '🔄 Logging in...');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: EMAIL, password: PASSWORD })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                sessionData = await response.json();
+                localStorage.setItem('auth.accessToken', sessionData.accessToken);
+                localStorage.setItem('auth.refreshToken', sessionData.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(sessionData.user));
+
+                log(output, '✅ Login successful!', 'success');
+                log(output, `User ID: ${sessionData.user.id}`, 'success');
+                log(output, `Tenant ID: ${sessionData.user.tenantId}`, 'success');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth.accessToken');
+            if (!token) {
+                throw new Error('Not logged in! Click Login first.');
+            }
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        function getUserData() {
+            const user = localStorage.getItem('auth.user');
+            if (!user) {
+                throw new Error('Not logged in! Click Login first.');
+            }
+            return JSON.parse(user);
+        }
+
+        async function connectTikTok() {
+            const output = 'output';
+            log(output, '🔄 Connecting TikTok...');
+
+            try {
+                const user = getUserData();
+                const handle = document.getElementById('handle').value.trim();
+                const sessionid = document.getElementById('sessionid').value.trim();
+                const sid_tt = document.getElementById('sid_tt').value.trim();
+                const uid_tt = document.getElementById('uid_tt').value.trim();
+
+                if (!handle) {
+                    throw new Error('Please enter your TikTok handle');
+                }
+                if (!sessionid) {
+                    throw new Error('Please paste sessionid value');
+                }
+                if (!sid_tt) {
+                    throw new Error('Please paste sid_tt value');
+                }
+                if (!uid_tt) {
+                    throw new Error('Please paste uid_tt value');
+                }
+
+                // Build cookie string
+                const cookieString = `sessionid=${sessionid}; sid_tt=${sid_tt}; uid_tt=${uid_tt}`;
+                log(output, '📋 Cookie string built', 'info');
+
+                const response = await fetch(`${API_URL}/oauth/tiktok/connect`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenantId: user.tenantId,
+                        userId: user.id,
+                        accountHandle: handle,
+                        cookies: cookieString
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || response.statusText);
+                }
+
+                const data = await response.json();
+                log(output, '✅ TikTok connected successfully!', 'success');
+                log(output, `Connection ID: ${data.connectionId}`, 'success');
+                log(output, '🎉 You can now create autopost rules!', 'success');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function connectWithString() {
+            const output = 'output';
+            log(output, '🔄 Connecting TikTok with cookie string...');
+
+            try {
+                const user = getUserData();
+                const handle = document.getElementById('handle').value.trim();
+                const cookieString = document.getElementById('cookieString').value.trim();
+
+                if (!handle) {
+                    throw new Error('Please enter your TikTok handle');
+                }
+                if (!cookieString) {
+                    throw new Error('Please paste cookie string');
+                }
+
+                const response = await fetch(`${API_URL}/oauth/tiktok/connect`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenantId: user.tenantId,
+                        userId: user.id,
+                        accountHandle: handle,
+                        cookies: cookieString
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || response.statusText);
+                }
+
+                const data = await response.json();
+                log(output, '✅ TikTok connected successfully!', 'success');
+                log(output, `Connection ID: ${data.connectionId}`, 'success');
+                log(output, '🎉 You can now create autopost rules!', 'success');
+
+            } catch (error) {
+                log(output, `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('auth.accessToken');
+            if (!token) {
+                document.getElementById('loginOutput').innerHTML =
+                    '<span class="info">Click "Login Now" to start</span>';
+            } else {
+                document.getElementById('loginOutput').innerHTML =
+                    '<span class="success">✅ Already logged in! Fill in your cookies below.</span>';
+            }
+        });
+    </script>
+</body>
+</html>

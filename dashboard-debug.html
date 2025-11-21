@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        h1 { color: #4CAF50; }
+        h2 { color: #2196F3; }
+        h3 { color: #ff9800; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 0 0;
+        }
+        button:hover { background: #45a049; }
+        .output {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        .info { color: #2196F3; }
+        code {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #4CAF50;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Dashboard Debug Tool</h1>
+    <p>Diagnose why the dashboard can't see your connections</p>
+
+    <div class="section">
+        <h2>Step 1: Login & Get Session</h2>
+        <button onclick="performLogin()">🔐 Login</button>
+        <button onclick="checkLocalStorage()">💾 Check localStorage</button>
+        <button onclick="checkDashboardAuth()">🌐 Test Dashboard Auth</button>
+        <div id="loginOutput" class="output"></div>
+    </div>
+
+    <div class="grid">
+        <div class="section">
+            <h2>Step 2A: Direct API Test</h2>
+            <p style="color:#888;font-size:12px">Test API directly (like helper tools do)</p>
+            <button onclick="testDirectAPI()">🔌 Test Direct API</button>
+            <div id="directOutput" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 2B: Dashboard API Test</h2>
+            <p style="color:#888;font-size:12px">Test API the way dashboard does</p>
+            <button onclick="testDashboardAPI()">📊 Test Dashboard API</button>
+            <div id="dashboardOutput" class="output"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Analyze Connections</h2>
+        <button onclick="analyzeConnections()">🔬 Analyze Data</button>
+        <div id="analysisOutput" class="output"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Fix Dashboard</h2>
+        <button onclick="fixDashboard()">🔧 Auto-Fix Dashboard</button>
+        <div id="fixOutput" class="output"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://autorepost-api-l4oy.onrender.com/api';
+        const WEB_URL = 'https://autorepost-web.onrender.com';
+        let sessionData = null;
+        let connections = [];
+
+        function log(elementId, message, type = 'info') {
+            const output = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function performLogin() {
+            log('loginOutput', '🔄 Logging in...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'justin@justinkratz.com',
+                        password: 'Justin123456'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                sessionData = await response.json();
+
+                log('loginOutput', '✅ Login successful!', 'success');
+                log('loginOutput', `User ID: ${sessionData.user.id}`, 'success');
+                log('loginOutput', `Tenant ID: ${sessionData.user.tenantId}`, 'success');
+                log('loginOutput', `Role: ${sessionData.user.role}`, 'success');
+
+                // Store in localStorage
+                localStorage.setItem('auth.accessToken', sessionData.accessToken);
+                localStorage.setItem('auth.refreshToken', sessionData.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(sessionData.user));
+
+                log('loginOutput', '✅ Stored in localStorage', 'success');
+
+            } catch (error) {
+                log('loginOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkLocalStorage() {
+            log('loginOutput', '🔍 Checking localStorage...', 'info');
+
+            const token = localStorage.getItem('auth.accessToken');
+            const refreshToken = localStorage.getItem('auth.refreshToken');
+            const userStr = localStorage.getItem('auth.user');
+
+            if (token) {
+                log('loginOutput', `✅ accessToken: ${token.substring(0, 30)}...`, 'success');
+            } else {
+                log('loginOutput', '❌ No accessToken found', 'error');
+            }
+
+            if (refreshToken) {
+                log('loginOutput', `✅ refreshToken: ${refreshToken.substring(0, 30)}...`, 'success');
+            } else {
+                log('loginOutput', '❌ No refreshToken found', 'error');
+            }
+
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    log('loginOutput', `✅ user: ${user.email} (${user.role})`, 'success');
+                    log('loginOutput', `   tenantId: ${user.tenantId}`, 'info');
+                    log('loginOutput', `   userId: ${user.id}`, 'info');
+                } catch (e) {
+                    log('loginOutput', '❌ user data is invalid JSON', 'error');
+                }
+            } else {
+                log('loginOutput', '❌ No user data found', 'error');
+            }
+        }
+
+        async function checkDashboardAuth() {
+            log('loginOutput', '🔍 Testing dashboard authentication...', 'info');
+
+            const token = localStorage.getItem('auth.accessToken');
+            if (!token) {
+                log('loginOutput', '❌ No token in localStorage. Click "Login" first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('loginOutput', '✅ Token is valid!', 'success');
+                    log('loginOutput', `User: ${data.email} (${data.role})`, 'success');
+                } else {
+                    log('loginOutput', `❌ Token is invalid: ${response.status} ${response.statusText}`, 'error');
+                    log('loginOutput', '💡 Try logging in again', 'warning');
+                }
+            } catch (error) {
+                log('loginOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDirectAPI() {
+            log('directOutput', '🔄 Testing direct API call...', 'info');
+
+            if (!sessionData) {
+                log('directOutput', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                const url = `${API_URL}/connections?tenantId=${sessionData.user.tenantId}&userId=${sessionData.user.id}`;
+                log('directOutput', `URL: ${url}`, 'info');
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${sessionData.accessToken}` }
+                });
+
+                log('directOutput', `Response status: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    connections = await response.json();
+                    log('directOutput', `✅ Found ${connections.length} connections`, 'success');
+                    log('directOutput', JSON.stringify(connections, null, 2), 'info');
+                } else {
+                    const error = await response.text();
+                    log('directOutput', `❌ Error response: ${error}`, 'error');
+                }
+            } catch (error) {
+                log('directOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDashboardAPI() {
+            log('dashboardOutput', '🔄 Testing dashboard API pattern...', 'info');
+
+            const token = localStorage.getItem('auth.accessToken');
+            const userStr = localStorage.getItem('auth.user');
+
+            if (!token || !userStr) {
+                log('dashboardOutput', '❌ Missing localStorage data. Click "Login" first', 'error');
+                return;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                const url = `${API_URL}/connections?tenantId=${user.tenantId}&userId=${user.id}`;
+
+                log('dashboardOutput', `URL: ${url}`, 'info');
+                log('dashboardOutput', `Token: ${token.substring(0, 30)}...`, 'info');
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include',
+                    cache: 'no-store'
+                });
+
+                log('dashboardOutput', `Response status: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('dashboardOutput', `✅ Found ${data.length} connections`, 'success');
+                    log('dashboardOutput', JSON.stringify(data, null, 2), 'info');
+                } else {
+                    const error = await response.text();
+                    log('dashboardOutput', `❌ Error: ${error}`, 'error');
+
+                    if (response.status === 401) {
+                        log('dashboardOutput', '💡 Token expired or invalid. Try logging in again', 'warning');
+                    }
+                }
+            } catch (error) {
+                log('dashboardOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function analyzeConnections() {
+            log('analysisOutput', '🔬 Analyzing connections...', 'info');
+
+            if (connections.length === 0) {
+                log('analysisOutput', '⚠️ No connections loaded. Run API tests first', 'warning');
+                return;
+            }
+
+            // Group by platform
+            const grouped = connections.reduce((acc, conn) => {
+                if (!acc[conn.platform]) acc[conn.platform] = [];
+                acc[conn.platform].push(conn);
+                return acc;
+            }, {});
+
+            log('analysisOutput', `\n📊 SUMMARY`, 'success');
+            log('analysisOutput', `Total connections: ${connections.length}`, 'info');
+            log('analysisOutput', `\nBy platform:`, 'info');
+
+            Object.entries(grouped).forEach(([platform, conns]) => {
+                const activeCount = conns.filter(c => c.status === 'ACTIVE').length;
+                log('analysisOutput', `  ${platform}: ${conns.length} total, ${activeCount} ACTIVE`, 'info');
+
+                conns.forEach((conn, i) => {
+                    log('analysisOutput', `    [${i+1}] ${conn.accountHandle} - ${conn.status} - ${conn.id}`, 'info');
+                });
+            });
+
+            // Check TikTok specifically
+            const tiktok = connections.filter(c => c.platform === 'TIKTOK');
+            log('analysisOutput', `\n🎵 TIKTOK ANALYSIS`, 'success');
+            log('analysisOutput', `Total TikTok: ${tiktok.length}`, 'info');
+
+            const activeTikTok = tiktok.filter(c => c.status === 'ACTIVE');
+            log('analysisOutput', `Active TikTok: ${activeTikTok.length}`, activeTikTok.length > 0 ? 'success' : 'error');
+
+            if (activeTikTok.length === 0) {
+                log('analysisOutput', `❌ NO ACTIVE TIKTOK CONNECTIONS!`, 'error');
+                log('analysisOutput', `This is why Rules page shows "No active TikTok connections"`, 'error');
+
+                tiktok.forEach(conn => {
+                    log('analysisOutput', `  ${conn.accountHandle}: status=${conn.status} (should be ACTIVE)`, 'warning');
+                });
+            } else {
+                log('analysisOutput', `✅ Active TikTok connections found:`, 'success');
+                activeTikTok.forEach(conn => {
+                    log('analysisOutput', `  ${conn.accountHandle} (${conn.id})`, 'success');
+                });
+            }
+        }
+
+        async function fixDashboard() {
+            log('fixOutput', '🔧 Attempting to fix dashboard...', 'info');
+
+            // Step 1: Login and get fresh token
+            log('fixOutput', 'Step 1: Getting fresh auth token...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'justin@justinkratz.com',
+                        password: 'Justin123456'
+                    })
+                });
+
+                if (!response.ok) throw new Error('Login failed');
+
+                const data = await response.json();
+
+                // Store in localStorage
+                localStorage.setItem('auth.accessToken', data.accessToken);
+                localStorage.setItem('auth.refreshToken', data.refreshToken);
+                localStorage.setItem('auth.user', JSON.stringify(data.user));
+
+                log('fixOutput', '✅ Fresh token stored in localStorage', 'success');
+
+                // Step 2: Test connections endpoint
+                log('fixOutput', 'Step 2: Testing connections endpoint...', 'info');
+
+                const connResponse = await fetch(
+                    `${API_URL}/connections?tenantId=${data.user.tenantId}&userId=${data.user.id}`,
+                    { headers: { 'Authorization': `Bearer ${data.accessToken}` } }
+                );
+
+                if (connResponse.ok) {
+                    const conns = await connResponse.json();
+                    log('fixOutput', `✅ Found ${conns.length} connections`, 'success');
+
+                    const tiktok = conns.filter(c => c.platform === 'TIKTOK' && c.status === 'ACTIVE');
+                    if (tiktok.length > 0) {
+                        log('fixOutput', `✅ ${tiktok.length} active TikTok connection(s) found`, 'success');
+                    } else {
+                        log('fixOutput', `⚠️ No active TikTok connections`, 'warning');
+                    }
+                } else {
+                    log('fixOutput', `❌ Connections API failed: ${connResponse.status}`, 'error');
+                }
+
+                // Step 3: Open dashboard
+                log('fixOutput', 'Step 3: Opening dashboard...', 'info');
+                log('fixOutput', '🌐 Dashboard will open in 3 seconds...', 'info');
+
+                setTimeout(() => {
+                    window.open(`${WEB_URL}/console/connections`, '_blank');
+                    log('fixOutput', '✅ Dashboard opened!', 'success');
+                    log('fixOutput', '📋 Check the new tab - connections should be visible!', 'success');
+                    log('fixOutput', '📋 Go to Rules page - should show your TikTok connections!', 'success');
+                }, 3000);
+
+            } catch (error) {
+                log('fixOutput', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
