@@ -91,7 +91,8 @@ export class RulesService {
       });
     } catch (error) {
       // Log error but don't fail rule creation
-      console.error('Failed to schedule job for rule creation:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to schedule job for rule creation:', errorMessage);
     }
 
     return this.toResponse(rule);
