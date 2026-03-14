@@ -252,17 +252,27 @@ async function syncTikTokAccount(processingJobId: string): Promise<Record<string
     }
 
     const cookies = decrypt(sourceConnection.accessTokenEncrypted);
+
+    const oldestRuleDate = rules.reduce((oldest, r) => r.createdAt < oldest ? r.createdAt : oldest, rules[0].createdAt);
+    const syncSinceDate = sourceConnection.lastSyncedAt && sourceConnection.lastSyncedAt > oldestRuleDate ? sourceConnection.lastSyncedAt : oldestRuleDate;
+    const startEpoch = Math.floor(syncSinceDate.getTime() / 1000);
+
     const feed = await tikTokClient.fetchUserFeed({
       username: sourceConnection.accountHandle,
       page: 1,
       perPage: 50,
-      cookies
+      cookies,
+      startEpoch
     });
 
     let createdPosts = 0;
 
     for (const rule of rules) {
+      const ruleEpoch = Math.floor(rule.createdAt.getTime() / 1000);
       for (const video of feed.videos) {
+        if (video.epochTimePosted < ruleEpoch) {
+          continue;
+        }
         try {
           const postLog = await prisma.postLog.create({
             data: {

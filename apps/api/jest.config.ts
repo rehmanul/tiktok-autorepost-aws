@@ -19,6 +19,7 @@ const config: Config = {
       }
     ]
   },
+  transformIgnorePatterns: ['/node_modules/(?!(p-retry|is-network-error)/)'],
   collectCoverage: false,
   verbose: false
 };
