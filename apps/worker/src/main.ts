@@ -161,7 +161,11 @@ if (!Number.isNaN(metricsPollInterval) && metricsPollInterval > 0) {
 }
 updateQueueMetrics();
 
-const prisma = new PrismaClient();
+let dbUrl = process.env.DATABASE_URL;
+if (dbUrl && dbUrl.includes('6543') && dbUrl.includes('supabase') && !dbUrl.includes('pgbouncer=true')) {
+  dbUrl += dbUrl.includes('?') ? '&pgbouncer=true' : '?pgbouncer=true';
+}
+const prisma = new PrismaClient(dbUrl ? { datasources: { db: { url: dbUrl } } } : undefined);
 
 const s3Client = new S3Client({
   region: process.env.S3_REGION ?? 'us-east-1',

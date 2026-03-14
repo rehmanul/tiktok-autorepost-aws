@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "cd ../.. && npx turbo build --filter=@autorepost/web",
+  "installCommand": "cd ../.. && npm install",
+  "outputDirectory": "../../apps/web/.next",
+  "framework": "nextjs"
+}
