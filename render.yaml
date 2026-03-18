@@ -1,7 +1,8 @@
 services:
   - type: web
     name: autorepost-api
-    env: node
+    plan: free
+    runtime: node
     rootDir: .
     buildCommand: npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker
     startCommand: npm run render:start
@@ -37,7 +38,8 @@ services:
 
   - type: web
     name: autorepost-web
-    env: node
+    plan: free
+    runtime: node
     rootDir: .
     buildCommand: npm ci && npx turbo build --filter=@autorepost/web
     startCommand: npm run render:web:start
