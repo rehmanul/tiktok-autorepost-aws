@@ -38,8 +38,9 @@ services:
   - type: web
     name: autorepost-web
     env: node
+    rootDir: .
     buildCommand: npm ci && npx turbo build --filter=@autorepost/web
-    startCommand: cd apps/web && npm start
+    startCommand: npm run render:web:start
     envVars:
       - key: NODE_ENV
         value: production

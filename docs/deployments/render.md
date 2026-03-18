@@ -5,7 +5,7 @@ This guide walks through deploying the autorepost monorepo to Render using the i
 ## Overview
 
 - **API + Worker combo service** (`@autorepost/api` + `@autorepost/worker`): Render Web Service (free plan). Runs both processes together via `npm run render:start` (implemented by `scripts/start-render.js`).
-- **Web dashboard** (`@autorepost/web`): Render Web Service (free plan). Builds the Next.js app and starts it with `cd apps/web && npm start`.
+- **Web dashboard** (`@autorepost/web`): Render Web Service (free plan). Builds the Next.js app and starts it with `npm run render:web:start` (implemented by `scripts/start-render-web.js`).
 
 ## Prerequisites
 
@@ -37,8 +37,9 @@ This guide walks through deploying the autorepost monorepo to Render using the i
      npm run build -- --filter=@autorepost/web
      ```
    - API service `startCommand`: `npm run render:start`.
-   - Web dashboard `startCommand`: `cd apps/web && npm start`.
-   - If the Render dashboard shows web `startCommand` as `true`, set it to `cd apps/web && npm start` and redeploy.
+   - Web dashboard `startCommand`: `npm run render:web:start`.
+   - If the Render dashboard shows web `startCommand` as `true`, set it to `npm run render:web:start` and redeploy.
+   - Guardrail: after every Render blueprint sync, verify web `startCommand` remains `npm run render:web:start`.
 
 5. **Verify**
    - Visit the API service URL `/health` and `/metrics`.

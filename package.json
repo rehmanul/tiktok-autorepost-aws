@@ -17,6 +17,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "smoke:test": "node tests/smoke/run-smoke.js",
     "render:start": "node scripts/start-render.js",
+    "render:web:start": "node scripts/start-render-web.js",
     "setup:supabase": "ts-node scripts/setup-supabase.ts",
     "generate:token-key": "ts-node scripts/generate-token-key.ts",
     "verify:setup": "ts-node scripts/verify-setup.ts",

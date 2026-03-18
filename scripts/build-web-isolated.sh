@@ -17,4 +17,4 @@ NODE_ENV=production npm run build
 echo ""
 echo "✅ Web build complete!"
 echo "Build artifacts directory: apps/web/.next"
-echo "Start command: cd apps/web && npm start"
+echo "Start command: npm run render:web:start"

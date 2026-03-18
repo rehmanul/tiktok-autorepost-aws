@@ -75,11 +75,13 @@ All checks should pass ✅
      - Start Command: `npm run render:start`
      - Note: this starts both API and worker processes.
    - **Web Dashboard** (Node.js Web Service)
-     - Build Command: `npm ci && npx turbo build --filter=@autorepost/web`
-     - Start Command: `cd apps/web && npm start`
+      - Build Command: `npm ci && npx turbo build --filter=@autorepost/web`
+      - Start Command: `npm run render:web:start`
+      - Runtime implementation: `scripts/start-render-web.js` (launches `apps/web` with `npm run start`)
 
 3. Add required environment variables to each service
-4. If Render dashboard shows web `startCommand` as `true`, change it to `cd apps/web && npm start` and redeploy
+4. If Render dashboard shows web `startCommand` as `true`, change it to `npm run render:web:start` and redeploy
+5. Render guardrail: after every blueprint sync, verify **Service Settings → Start Command** still equals `npm run render:web:start` for `autorepost-web`
 
 #### Option B: Vercel + Render
 

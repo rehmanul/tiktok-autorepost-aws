@@ -328,9 +328,10 @@ Complete documentation: [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIA
 
 **Web Service** (Node.js):
 - Build: `npm ci && npx turbo build --filter=@autorepost/web`
-- Start: `cd apps/web && npm start`
+- Start: `npm run render:web:start` (implemented by `scripts/start-render-web.js`, which runs `apps/web` `npm run start`)
 - Environment: `NEXT_PUBLIC_*` variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_API_URL`)
-- If Render dashboard shows `startCommand: true`, set `cd apps/web && npm start` and redeploy
+- If Render dashboard shows `startCommand: true`, set `npm run render:web:start` and redeploy
+- Guardrail: after every Render blueprint sync, verify web Start Command is still `npm run render:web:start`
 
 ### Observability
 
