@@ -260,7 +260,18 @@ https://your-api-domain.com/oauth/twitter/callback
 
 ⚠️ **Note:** This is legacy scraper configuration. Future versions will use official TikTok API.
 
-### TikTok Scraper Settings
+### Git1 TikTok Source Service Settings (Production)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TIKTOK_SOURCE_SERVICE_URL` | ⚠️ Yes (worker) | - | Base URL of Git1 TikTok source service. Worker calls `GET /api/tiktok` on this service. |
+| `TIKTOK_SOURCE_SERVICE_TIMEOUT_MS` | No | `12000` | Timeout for Git1 API fetch requests in milliseconds |
+| `TIKTOK_SOURCE_SERVICE_MAX_RETRIES` | No | `3` | Retry attempts for Git1 API fetch requests |
+| `TIKTOK_SOURCE_SERVICE_MAX_POSTS` | No | `500` | Max number of upstream posts to ingest per sync cycle |
+| `TIKTOK_MEDIA_VALIDATION_TIMEOUT_MS` | No | `8000` | Timeout for media URL validation probe requests |
+| `TIKTOK_MEDIA_VALIDATION_MAX_RETRIES` | No | `1` | Retry attempts for media URL validation probes |
+
+### Legacy TikTok Scraper Settings
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -270,8 +281,8 @@ https://your-api-domain.com/oauth/twitter/callback
 | `CACHE_MAX_ENTRIES` | No | `100` | Max cache entries |
 | `NAVIGATION_TIMEOUT_MS` | No | `30000` | Page load timeout (ms) |
 | `CONTENT_WAIT_MS` | No | `5000` | Content wait time (ms) |
-| `HTTP_FETCH_TIMEOUT_MS` | No | `12000` | HTTP fetch timeout (ms) |
-| `HTTP_MAX_RETRIES` | No | `3` | Max HTTP retries |
+| `HTTP_FETCH_TIMEOUT_MS` | No | `12000` | Legacy HTTP fetch timeout fallback used if source-specific timeout is unset |
+| `HTTP_MAX_RETRIES` | No | `3` | Legacy HTTP retry fallback used if source-specific retries are unset |
 | `TIKTOK_ITEM_LIST_PAGE_SIZE` | No | `30` | Items per page |
 | `TIKTOK_ITEM_LIST_MAX_PAGES` | No | `40` | Max pages to fetch |
 | `TIKTOK_ITEM_LIST_BUFFER_PAGES` | No | `2` | Buffer pages |

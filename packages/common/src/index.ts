@@ -8,6 +8,16 @@ export const QUEUES = {
   TOKEN_REFRESH: 'token-refresh'
 } as const;
 
+export const REPOST_QUEUE_DEFAULT_JOB_OPTIONS = Object.freeze({
+  removeOnComplete: 500,
+  removeOnFail: 1000,
+  attempts: 3,
+  backoff: Object.freeze({
+    type: 'exponential' as const,
+    delay: 5000
+  })
+});
+
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
 
 export function assertDefined<T>(value: T | undefined | null, message: string): T {

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
-import { QUEUES } from '@autorepost/common';
+import { QUEUES, REPOST_QUEUE_DEFAULT_JOB_OPTIONS } from '@autorepost/common';
 import { REPOST_QUEUE_PROVIDER } from './queue.constants';
 import { QueueService } from './queue.service';
 
@@ -20,15 +20,7 @@ import { QueueService } from './queue.service';
 
         return new Queue(QUEUES.REPOST_DISPATCH, {
           connection,
-          defaultJobOptions: {
-            removeOnComplete: 500,
-            removeOnFail: 1000,
-            attempts: 3,
-            backoff: {
-              type: 'exponential',
-              delay: 5000
-            }
-          }
+          defaultJobOptions: REPOST_QUEUE_DEFAULT_JOB_OPTIONS
         });
       },
       inject: [ConfigService]

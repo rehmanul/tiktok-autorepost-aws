@@ -26,8 +26,15 @@ import {
   SocialPlatform
 } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { TikTokHttpClient } from '@autorepost/integrations-tiktok';
-import { QUEUES, createTokenCipher } from '@autorepost/common';
+import {
+  TikTokServiceClient,
+  TikTokFeedResponse
+} from '@autorepost/integrations-tiktok';
+import {
+  QUEUES,
+  REPOST_QUEUE_DEFAULT_JOB_OPTIONS,
+  createTokenCipher
+} from '@autorepost/common';
 
 const shouldUsePrettyLogs = (() => {
   const nodeEnv = (process.env.NODE_ENV ?? '').toLowerCase();
@@ -137,7 +144,8 @@ const queueEvents = new QueueEvents(QUEUES.REPOST_DISPATCH, {
 });
 
 const queue = new Queue(QUEUES.REPOST_DISPATCH, {
-  connection: redis.duplicate()
+  connection: redis.duplicate(),
+  defaultJobOptions: REPOST_QUEUE_DEFAULT_JOB_OPTIONS
 });
 
 const updateQueueMetrics = () => {
@@ -181,9 +189,7 @@ const s3Client = new S3Client({
 
 const s3Bucket = process.env.S3_BUCKET ?? 'autorepost-media';
 
-const tikTokClient = new TikTokHttpClient({
-  defaultCookies: process.env.TIKTOK_COOKIE
-});
+const tikTokClient = new TikTokServiceClient();
 
 type JobHandler = (processingJobId: string) => Promise<Record<string, unknown> | null>;
 
@@ -261,13 +267,62 @@ async function syncTikTokAccount(processingJobId: string): Promise<Record<string
     const syncSinceDate = sourceConnection.lastSyncedAt && sourceConnection.lastSyncedAt > oldestRuleDate ? sourceConnection.lastSyncedAt : oldestRuleDate;
     const startEpoch = Math.floor(syncSinceDate.getTime() / 1000);
 
-    const feed = await tikTokClient.fetchUserFeed({
-      username: sourceConnection.accountHandle,
-      page: 1,
-      perPage: 50,
-      cookies,
-      startEpoch
-    });
+    logger.info(
+      {
+        processingJobId,
+        sourceConnectionId: sourceConnection.id,
+        accountHandle: sourceConnection.accountHandle,
+        startEpoch
+      },
+      'TikTok sync fetch started'
+    );
+
+    let feed: TikTokFeedResponse;
+    try {
+      feed = await tikTokClient.fetchUserFeed({
+        username: sourceConnection.accountHandle,
+        page: 1,
+        perPage: 50,
+        cookies,
+        startEpoch
+      });
+    } catch (error) {
+      logger.error(
+        {
+          processingJobId,
+          sourceConnectionId: sourceConnection.id,
+          accountHandle: sourceConnection.accountHandle,
+          startEpoch,
+          message: error instanceof Error ? error.message : String(error)
+        },
+        'TikTok sync fetch failed'
+      );
+      throw error;
+    }
+
+    const syncDiagnostics =
+      typeof feed.meta?.diagnostics === 'object' && feed.meta.diagnostics !== null
+        ? (feed.meta.diagnostics as Record<string, unknown>)
+        : null;
+
+    logger.info(
+      {
+        processingJobId,
+        sourceConnectionId: sourceConnection.id,
+        accountHandle: sourceConnection.accountHandle,
+        fetchedVideos: feed.videos.length,
+        normalizationRejectsByReason:
+          syncDiagnostics && typeof syncDiagnostics.rejectedByReason === 'object'
+            ? (syncDiagnostics.rejectedByReason as Record<string, unknown>)
+            : null,
+        mediaValidationFailuresByReason:
+          syncDiagnostics && typeof syncDiagnostics.mediaValidationFailuresByReason === 'object'
+            ? (syncDiagnostics.mediaValidationFailuresByReason as Record<string, unknown>)
+            : null,
+        fetchDiagnostics: syncDiagnostics
+      },
+      'TikTok sync fetch completed'
+    );
 
     let createdPosts = 0;
 
@@ -322,14 +377,38 @@ async function syncTikTokAccount(processingJobId: string): Promise<Record<string
       }
     }
 
+    const syncCompletedAt = new Date();
+
     await prisma.connection.update({
       where: { id: sourceConnection.id },
       data: {
-        lastSyncedAt: new Date(),
+        lastSyncedAt: syncCompletedAt,
         status: ConnectionStatus.ACTIVE,
         metadata: clearConnectionErrorMetadata(sourceConnection.metadata)
       }
     });
+
+    logger.info(
+      {
+        processingJobId,
+        sourceConnectionId: sourceConnection.id,
+        accountHandle: sourceConnection.accountHandle,
+        startEpoch,
+        fetchedPosts: feed.videos.length,
+        newPosts: createdPosts,
+        rules: rules.length,
+        normalizationRejectsByReason:
+          syncDiagnostics && typeof syncDiagnostics.rejectedByReason === 'object'
+            ? (syncDiagnostics.rejectedByReason as Record<string, unknown>)
+            : null,
+        mediaValidationFailuresByReason:
+          syncDiagnostics && typeof syncDiagnostics.mediaValidationFailuresByReason === 'object'
+            ? (syncDiagnostics.mediaValidationFailuresByReason as Record<string, unknown>)
+            : null,
+        completedAt: syncCompletedAt.toISOString()
+      },
+      'TikTok sync summary'
+    );
 
     return {
       fetchedPosts: feed.videos.length,
@@ -483,6 +562,16 @@ async function publishToDestination(processingJobId: string): Promise<Record<str
   }
 
   const destinationConnection = job.destinationConnection;
+  logger.info(
+    {
+      processingJobId,
+      destinationConnectionId: destinationConnection.id,
+      platform: destinationConnection.platform,
+      postLogId: job.postLog.id
+    },
+    'Publish attempt started'
+  );
+
   const accessToken = decryptStrict(
     destinationConnection.accessTokenEncrypted,
     `Destination connection ${destinationConnection.id} missing access token`
@@ -554,6 +643,18 @@ async function publishToDestination(processingJobId: string): Promise<Record<str
       }
     });
 
+    logger.info(
+      {
+        processingJobId,
+        destinationConnectionId: destinationConnection.id,
+        platform: destinationConnection.platform,
+        postLogId: job.postLog.id,
+        repostActivityId: repostActivity.id,
+        repostUrl: result.url ?? null
+      },
+      'Publish attempt succeeded'
+    );
+
     return {
       platform: destinationConnection.platform,
       repostUrl: result.url ?? null
@@ -568,6 +669,19 @@ async function publishToDestination(processingJobId: string): Promise<Record<str
         completedAt: new Date()
       }
     });
+
+    logger.error(
+      {
+        processingJobId,
+        destinationConnectionId: destinationConnection.id,
+        platform: destinationConnection.platform,
+        postLogId: job.postLog.id,
+        repostActivityId: repostActivity.id,
+        message
+      },
+      'Publish attempt failed'
+    );
+
     throw error;
   }
 }
@@ -623,7 +737,8 @@ async function scheduleProcessingJob(input: ScheduleJobInput) {
     },
     {
       jobId: jobRecord.id,
-      priority: input.priority ?? 0
+      priority: input.priority ?? 0,
+      ...REPOST_QUEUE_DEFAULT_JOB_OPTIONS
     }
   );
 
