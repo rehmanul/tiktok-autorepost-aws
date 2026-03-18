@@ -1,11 +1,11 @@
 # Deploying to Render (Free Tier)
 
-This guide walks through deploying the autot repost monorepo to Render using the included `render.yaml`.
+This guide walks through deploying the autorepost monorepo to Render using the included `render.yaml`.
 
 ## Overview
 
-- **API + Worker combo service** (`@autorepost/api` + `@autorepost/worker`): Render Web Service (free plan). Runs both processes together via `scripts/start-render.sh`.
-- **Web dashboard** (`@autorepost/web`): Render Static Site (free plan). Builds the Next.js app to static output (`apps/web/out`). If you prefer SSR or edge features, Vercel is a better fit.
+- **API + Worker combo service** (`@autorepost/api` + `@autorepost/worker`): Render Web Service (free plan). Runs both processes together via `npm run render:start` (implemented by `scripts/start-render.js`).
+- **Web dashboard** (`@autorepost/web`): Render Web Service (free plan). Builds the Next.js app and starts it with `cd apps/web && npm start`.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ This guide walks through deploying the autot repost monorepo to Render using the
    - On Render → "New +", select "Blueprint" and point to your repository. Render detects `render.yaml`.
 
 2. **Configure Secrets**
-   - Render will prompt for environment variables for the combined API/worker service and the static site.
+   - Render will prompt for environment variables for the combined API/worker service and the web dashboard service.
    - Provide values for all `sync: false` keys (DATABASE_URL, REDIS_URL, TOKEN_ENCRYPTION_KEY, TIKTOK_COOKIE, etc.).
    - If you do not yet have S3 credentials, create an IAM access key pair with limited permissions.
 
@@ -36,19 +36,21 @@ This guide walks through deploying the autot repost monorepo to Render using the
      npm run build -- --filter=@autorepost/api --filter=@autorepost/worker
      npm run build -- --filter=@autorepost/web
      ```
-   - After the build, Render runs the `startCommand` (`bash scripts/start-render.sh`) which launches both API and worker.
+   - API service `startCommand`: `npm run render:start`.
+   - Web dashboard `startCommand`: `cd apps/web && npm start`.
+   - If the Render dashboard shows web `startCommand` as `true`, set it to `cd apps/web && npm start` and redeploy.
 
 5. **Verify**
    - Visit the API service URL `/health` and `/metrics`.
    - Check worker logs for successful startup.
-   - The static dashboard is accessible via the static site URL.
+   - The dashboard is accessible via the Render web service URL.
    - Run `npm run smoke:test` locally pointing to the Render URLs to confirm basic health.
 
 ## Limitations & Notes
 
 - Render free tier sleeps web services after inactivity; expect cold starts.
 - The combined service shares CPU/RAM; for sustained background throughput consider upgrading to a paid plan or moving the worker to a dedicated service.
-- Render static sites serve pre-generated HTML. If you require Next.js API routes or SSR, deploy web app to Vercel instead.
+- The dashboard runs as a Node service on Render (SSR-capable), so it uses instance runtime resources.
 - Object storage must be external (S3). Update `S3_ENDPOINT` and `S3_BUCKET` accordingly.
 - Prometheus metrics and open telemetry won’t be scraped automatically on Render’s free tier. Use a third-party monitor or disable metrics if not needed (`PROMETHEUS_ENABLED=false`).
 

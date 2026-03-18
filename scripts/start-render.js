@@ -3,11 +3,22 @@ const { spawn } = require('node:child_process');
 const { existsSync } = require('node:fs');
 const { resolve } = require('node:path');
 
-function runProcess(command, args, name, cwd) {
+const npmExecPath = process.env.npm_execpath;
+const npmCommand = npmExecPath ? process.execPath : 'npm';
+const npmBaseArgs = npmExecPath ? [npmExecPath] : [];
+const useShellForNpm = process.platform === 'win32' && !npmExecPath;
+
+function runProcess(command, args, name, cwd, options = {}) {
   const child = spawn(command, args, {
     stdio: 'inherit',
     env: process.env,
-    cwd: cwd || process.cwd()
+    cwd: cwd || process.cwd(),
+    shell: options.shell ?? false
+  });
+
+  child.on('error', (error) => {
+    console.error(`${name} failed to start:`, error);
+    process.exit(1);
   });
 
   child.on('exit', (code) => {
@@ -20,6 +31,19 @@ function runProcess(command, args, name, cwd) {
   });
 
   return child;
+}
+
+function runNpmScript(scriptName, name, cwd) {
+  if (npmExecPath) {
+    return runProcess(npmCommand, [...npmBaseArgs, 'run', scriptName], name, cwd);
+  }
+
+  // Fallback path for environments where npm_execpath is unavailable.
+  if (useShellForNpm) {
+    return runProcess(`npm run ${scriptName}`, [], name, cwd, { shell: true });
+  }
+
+  return runProcess('npm', ['run', scriptName], name, cwd);
 }
 
 // Check if dist files exist (nested workspace structure)
@@ -42,10 +66,10 @@ console.log('✓ API dist found:', apiDist);
 console.log('✓ Worker dist found:', workerDist);
 
 console.log('Starting autorepost API...');
-const api = runProcess('npm', ['start'], 'API', resolve(__dirname, '../apps/api'));
+const api = runNpmScript('start', 'API', resolve(__dirname, '../apps/api'));
 
 console.log('Starting autorepost worker...');
-const worker = runProcess('npm', ['start'], 'Worker', resolve(__dirname, '../apps/worker'));
+const worker = runNpmScript('start', 'Worker', resolve(__dirname, '../apps/worker'));
 
 const shutdown = () => {
   console.log('Shutting down services...');

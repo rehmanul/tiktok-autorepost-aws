@@ -69,23 +69,22 @@ All checks should pass ✅
 #### Option A: Render.com (Recommended for Free Tier)
 
 1. Connect GitHub repository to Render
-2. Create services:
-   - **API Service** (Node.js)
-     - Build Command: `npm run build -- --filter=@autorepost/api`
-     - Start Command: `cd apps/api && npm start`
-   - **Worker Service** (Node.js)
-     - Build Command: `npm run build -- --filter=@autorepost/worker`
-     - Start Command: `cd apps/worker && npm start`
-   - **Web Service** (Static Site)
-     - Build Command: `npm run build -- --filter=@autorepost/web`
-     - Publish Directory: `apps/web/out`
+2. Use `render.yaml` blueprint (recommended), then verify commands:
+   - **API Service** (Node.js Web Service)
+     - Build Command: `npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker`
+     - Start Command: `npm run render:start`
+     - Note: this starts both API and worker processes.
+   - **Web Dashboard** (Node.js Web Service)
+     - Build Command: `npm ci && npx turbo build --filter=@autorepost/web`
+     - Start Command: `cd apps/web && npm start`
 
-3. Add all environment variables to each service
+3. Add required environment variables to each service
+4. If Render dashboard shows web `startCommand` as `true`, change it to `cd apps/web && npm start` and redeploy
 
 #### Option B: Vercel + Render
 
 - **Frontend**: Deploy `apps/web` to Vercel
-- **Backend**: Deploy API and Worker to Render
+- **Backend**: Deploy Render API service with `npm run render:start` (runs API + worker)
 
 ### Step 6: First Login
 

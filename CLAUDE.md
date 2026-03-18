@@ -121,7 +121,7 @@ npm start                    # Run production worker
 # Web dashboard (from apps/web)
 cd apps/web
 npm run dev                  # Start Next.js dev server
-npm run build                # Build static export
+npm run build                # Build Next.js production app
 npm start                    # Serve production build
 npm run typecheck            # Run TypeScript type checking
 ```
@@ -322,19 +322,15 @@ Complete documentation: [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIA
 ### Production Deployment (Render.com)
 
 **API Service** (Node.js):
-- Build: `npm run build -- --filter=@autorepost/api`
-- Start: `cd apps/api && npm start`
-- Environment: All .env variables required
+- Build: `npm ci && rm -rf node_modules/.prisma node_modules/@prisma/client && npx prisma generate --schema=./prisma/schema.prisma && npx turbo build --filter=@autorepost/api --filter=@autorepost/worker`
+- Start: `npm run render:start`
+- Environment: all backend variables required (`DATABASE_URL`, `REDIS_URL`, auth + storage secrets)
 
-**Worker Service** (Node.js):
-- Build: `npm run build -- --filter=@autorepost/worker`
-- Start: `cd apps/worker && npm start`
-- Environment: All .env variables required
-
-**Web Service** (Static Site):
-- Build: `npm run build -- --filter=@autorepost/web`
-- Publish Directory: `apps/web/out`
-- Environment: NEXT_PUBLIC_* variables only
+**Web Service** (Node.js):
+- Build: `npm ci && npx turbo build --filter=@autorepost/web`
+- Start: `cd apps/web && npm start`
+- Environment: `NEXT_PUBLIC_*` variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_API_URL`)
+- If Render dashboard shows `startCommand: true`, set `cd apps/web && npm start` and redeploy
 
 ### Observability
 
